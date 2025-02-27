@@ -8,7 +8,12 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+
 ```{r Load Data}
+load_data <- function(){
+  training_data <- read.csv("data/train.csv")
+  test_data <- read.csv("data/test.csv")
+}
 training_data <- read.csv("data/train.csv")
 test_data <- read.csv("data/test.csv")
 ```
@@ -23,13 +28,76 @@ summary(training_data)
 
 // Preguntas de Flavio
 
+### ¿Cuál es el comportamiento de la variable SalesPrice?
+
+```{r Histograma de SalesPrice}
+library(ggplot2)
+
+load_data()
+
+ggplot(training_data, aes(x = SalePrice)) +
+  geom_histogram(aes(y = ..density..), binwidth = 10000, fill = "blue", color = "black", alpha = 0.7) +
+  geom_density(color = "red", size = 1.2) + 
+  theme_minimal() +
+  labs(title = "Distribution of House Sale Prices with Density Curve",
+       x = "Sale Price",
+       y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+El histograma nos dice que es probable que tenga forma normal aunque increíblemente cesgada hacia la derecha. La prueba de Shapiro (la cual la podemos utilizar puesto nuestros datos no tienen más de 5000 observaciones) nos dice que:
+
+```{r Prueba Normal}
+load_data()
+shapiro.test(training_data$SalePrice)
+ks.test(training_data$SalePrice, "pnorm", mean(training_data$SalePrice), sd(training_data$SalePrice))
+```
+
+Además también confirmamos con la prueba de Kolmogorov-Smirnov y ambas indican que la distribución de SalesPrice es normal.
+
+Por lo tanto obtenemos la desviación estándar de: `sd(training_data$SalePrice)`.
+
 ### ¿Cuáles son los condominios con casas más caras/baratas?
 
 Los condominios con las casa más caras son:
 ```{r Condominios con casas caras}
+load_data()
 
+library(ggplot2)
+library(dplyr)
+
+top_50_houses <- training_data %>%
+  arrange(desc(SalePrice)) %>%
+  slice_max(SalePrice, n = 50)
+
+ggplot(top_50_houses, aes(x = reorder(Neighborhood, -SalePrice), y = SalePrice, fill = Neighborhood)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Condominios que contienen las 50 casas mas caras",
+       x = "Neighborhood",
+       y = "Sale Price") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+Los condominios con casas más baratas son:
+```{r Condominios con casas baratas}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+top_50_houses <- training_data %>%
+  arrange(SalePrice) %>%
+  slice_min(SalePrice, n=50)
+
+ggplot(top_50_houses, aes(x = reorder(Neighborhood, SalePrice), y = SalePrice, fill = Neighborhood)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Condominios que contienen las 50 casas mas baratas",
+       x = "Neighborhood",
+       y = "Sale Price") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
 
 // Preguntas de Prince
 
