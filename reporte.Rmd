@@ -80,8 +80,8 @@ ggplot(top_houses, aes(x = reorder(Neighborhood, -mean_sale_price), y = mean_sal
   geom_bar(stat = "identity") +
   theme_minimal() +
   labs(title = "Condominios con las casas mas caras",
-       x = "Neighborhood",
-       y = "Sale Price") +
+       x = "Condominio",
+       y = "Tipo de Venta") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
@@ -103,8 +103,8 @@ ggplot(top_houses, aes(x = reorder(Neighborhood, -mean_sale_price), y = mean_sal
   geom_bar(stat = "identity") +
   theme_minimal() +
   labs(title = "Condominios con las casas mas baratas",
-       x = "Neighborhood",
-       y = "Sale Price") +
+       x = "Condominio",
+       y = "Precio de Venta") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
@@ -124,8 +124,8 @@ ggplot(top_houses, aes(x = reorder(SaleType, -n), y = n, fill = SaleType, label 
   geom_text(size=3, position=position_stack(vjust = 0.9))+
   theme_minimal() +
   labs(title = "Distribucion de los tipos de ventas",
-       x = "SaleType",
-       y = "Count") +
+       x = "Tipo de Venta",
+       y = "# de Ventas") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
@@ -144,12 +144,57 @@ ggplot(top_houses, aes(x = reorder(SaleType, -n), y = n, fill = SaleType, label=
   geom_text(size=3, position=position_stack(vjust = 0.9))+
   theme_minimal() +
   labs(title = "Distribucion de los tipos de ventas (Ignora WD)",
-       x = "SaleType",
-       y = "Count") +
+       x = "Tipo de Venta",
+       y = "# de Ventas") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 Dentro de los tipos de venta niche: ConLD, ConLI, ConLw, CWD, Oth y Con son masmoenos usadas en la misma frecuencia mientras que New (Home just constructed and sold) es usada con gran dominancia seguida en segundo lugar por COD (Court Officer Deed/Estate).
+
+### ¿Cómo se compara el tamaño de la planta baja con el SalePrice?
+
+```{r Tamaño planta baja VS SalePrice}
+
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+ggplot(training_data, aes(x = X1stFlrSF, y = SalePrice)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red", se = TRUE) +
+  theme_minimal() +
+  labs(title = "Relacion entre el tamano de la planta baja y el precio de venta",
+       x = "Tamano de la planta baja (pies cuadrados)",
+       y = "Precio de Venta") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+correlacion <- cor(training_data$X1stFlrSF, training_data$SalePrice, use = "complete.obs")
+```
+
+La gráfica intenta encontrar una relación entre ambas variables sin embargo esta no resulta muy conclusiva ya que solamente tienen una correlación de `correlacion`. La cual indica una relación pero no es determinante.
+
+### ¿El tipo de fundación de la casa afecta su precio?
+```{r Tipo de fundación}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+top_houses <- training_data %>%
+  group_by(Foundation)%>%
+  summarize(mean_sale_price = mean(SalePrice))
+
+ggplot(top_houses, aes(x = reorder(Foundation, -mean_sale_price), y = mean_sale_price, fill = Foundation)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Promedio del precio de venta por tipo de fundación",
+       x = "Tipo de Fundacion",
+       y = "AVG de Ventas") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Como se puede ver por el diagrama, si hay una clara relación entre las construcciones realizadas por PConc y a tener un precio de venta más elevado en promedio lo que nos indica que esta variable pordría ser una muy buena predictora del precio de una casa.
 
 // Preguntas de Prince
 
