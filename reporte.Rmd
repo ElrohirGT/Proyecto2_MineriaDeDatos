@@ -85,7 +85,7 @@ ggplot(top_houses, aes(x = reorder(Neighborhood, -mean_sale_price), y = mean_sal
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-El gráfico de arriba nos muestra el promedio por condominio del SalesPrice de las casas cuyo precio es mayor a 3 veces la desviación estándar. Esto nos ayuda a determinar qué condominios son los que contienen las casas más caras.
+El gráfico de arriba nos muestra el promedio por condominio de SalesPrice de las casas cuyo precio es mayor a 3 veces la desviación estándar. Esto nos ayuda a determinar qué condominios son los que contienen las casas más caras.
 
 Los condominios con casas más baratas son:
 ```{r Condominios baratos}
@@ -110,6 +110,46 @@ ggplot(top_houses, aes(x = reorder(Neighborhood, -mean_sale_price), y = mean_sal
 
 Este gráfico funcion de forma similar al anterior, muestra el promedio de SalePrice por condominio de todas las casas cuyo precio es menor o igual a 1.5 desviaciones estándar debajo de la media.
 
+### ¿Cuál es la distribución de los tipos de ventas realizados?
+```{r Distribución tipos de ventas}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+top_houses <- count(training_data, SaleType)
+
+ggplot(top_houses, aes(x = reorder(SaleType, -n), y = n, fill = SaleType, label = n)) +
+  geom_bar(stat = "identity") +
+  geom_text(size=3, position=position_stack(vjust = 0.9))+
+  theme_minimal() +
+  labs(title = "Distribucion de los tipos de ventas",
+       x = "SaleType",
+       y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+La gran mayoría de ventas son del tipo WD (Warranty Deed - Conventional) y por un gran márgen, para poder analizar mejor los datos podemos ver la distribución ignorando el tipo WD:
+
+```{r Distribución tipos de ventas - Ignorando WD}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+top_houses <- count(training_data %>% filter(SaleType !="WD"), SaleType)
+
+ggplot(top_houses, aes(x = reorder(SaleType, -n), y = n, fill = SaleType, label=n)) +
+  geom_bar(stat = "identity") +
+  geom_text(size=3, position=position_stack(vjust = 0.9))+
+  theme_minimal() +
+  labs(title = "Distribucion de los tipos de ventas (Ignora WD)",
+       x = "SaleType",
+       y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Dentro de los tipos de venta niche: ConLD, ConLI, ConLw, CWD, Oth y Con son masmoenos usadas en la misma frecuencia mientras que New (Home just constructed and sold) es usada con gran dominancia seguida en segundo lugar por COD (Court Officer Deed/Estate).
 
 // Preguntas de Prince
 
