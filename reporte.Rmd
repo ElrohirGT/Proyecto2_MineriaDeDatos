@@ -37,7 +37,10 @@ load_data()
 
 ggplot(training_data, aes(x = SalePrice)) +
   geom_histogram(aes(y = ..density..), binwidth = 10000, fill = "blue", color = "black", alpha = 0.7) +
-  geom_density(color = "red", size = 1.2) + 
+  geom_density(color = "red", size = 1.2) +
+  geom_vline(xintercept = mean(training_data$SalePrice)+3*sd(training_data$SalePrice), color = "purple")+
+  geom_vline(xintercept = mean(training_data$SalePrice)-1.5*sd(training_data$SalePrice), color = "purple")+
+  geom_vline(xintercept = mean(training_data$SalePrice), color = "green")+
   theme_minimal() +
   labs(title = "Distribution of House Sale Prices with Density Curve",
        x = "Sale Price",
@@ -45,7 +48,9 @@ ggplot(training_data, aes(x = SalePrice)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-El histograma nos dice que es probable que tenga forma normal aunque increíblemente cesgada hacia la derecha. La prueba de Shapiro (la cual la podemos utilizar puesto nuestros datos no tienen más de 5000 observaciones) nos dice que:
+El histograma nos dice que es probable que tenga forma normal aunque increíblemente cesgada hacia la derecha. La línea verde representa la media, la línea morada de la derecha es 3 desviaciones estándar después de la media, la línea morada de la izquierda es 1.5 desviaciones estándar antes de la media.
+
+La prueba de Shapiro (la cual la podemos utilizar puesto nuestros datos no tienen más de 5000 observaciones) nos dice que:
 
 ```{r Prueba Normal}
 load_data()
@@ -60,46 +65,55 @@ Por lo tanto obtenemos la desviación estándar de: `sd(training_data$SalePrice)
 ### ¿Cuáles son los condominios con casas más caras/baratas?
 
 Los condominios con las casa más caras son:
-```{r Condominios con casas caras}
+```{r Condominios caros}
 load_data()
 
 library(ggplot2)
 library(dplyr)
 
-top_50_houses <- training_data %>%
-  arrange(desc(SalePrice)) %>%
-  slice_max(SalePrice, n = 50)
+top_houses <- training_data %>%
+  filter(SalePrice >= mean(SalePrice)+3*sd(SalePrice))%>%
+  group_by(Neighborhood)%>%
+  summarize(mean_sale_price = mean(SalePrice))
 
-ggplot(top_50_houses, aes(x = reorder(Neighborhood, -SalePrice), y = SalePrice, fill = Neighborhood)) +
+ggplot(top_houses, aes(x = reorder(Neighborhood, -mean_sale_price), y = mean_sale_price, fill = Neighborhood)) +
   geom_bar(stat = "identity") +
   theme_minimal() +
-  labs(title = "Condominios que contienen las 50 casas mas caras",
+  labs(title = "Condominios con las casas mas caras",
        x = "Neighborhood",
        y = "Sale Price") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+El gráfico de arriba nos muestra el promedio por condominio del SalesPrice de las casas cuyo precio es mayor a 3 veces la desviación estándar. Esto nos ayuda a determinar qué condominios son los que contienen las casas más caras.
 
 Los condominios con casas más baratas son:
-```{r Condominios con casas baratas}
+```{r Condominios baratos}
 load_data()
 
 library(ggplot2)
 library(dplyr)
 
-top_50_houses <- training_data %>%
-  arrange(SalePrice) %>%
-  slice_min(SalePrice, n=50)
+top_houses <- training_data %>%
+  filter(SalePrice <= mean(SalePrice)-1.5*sd(SalePrice))%>%
+  group_by(Neighborhood)%>%
+  summarize(mean_sale_price = mean(SalePrice))
 
-ggplot(top_50_houses, aes(x = reorder(Neighborhood, SalePrice), y = SalePrice, fill = Neighborhood)) +
+ggplot(top_houses, aes(x = reorder(Neighborhood, -mean_sale_price), y = mean_sale_price, fill = Neighborhood)) +
   geom_bar(stat = "identity") +
   theme_minimal() +
-  labs(title = "Condominios que contienen las 50 casas mas baratas",
+  labs(title = "Condominios con las casas mas baratas",
        x = "Neighborhood",
        y = "Sale Price") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+Este gráfico funcion de forma similar al anterior, muestra el promedio de SalePrice por condominio de todas las casas cuyo precio es menor o igual a 1.5 desviaciones estándar debajo de la media.
+
+
 // Preguntas de Prince
+
+### ¿?
 
 ### Análisis Exploratorio por Grupos
 
