@@ -238,6 +238,28 @@ ggplot(training_data, aes( x = Neighborhood, y = SalePrice)) +
 
 En el gráfico anterior podemos ver como se distribuye el precio de venta en cada condominio. Se puede ver que hay condominios que tienen una variedad de precios bastante limitada como en los condominios de Blueste o NPlVIII. La presencia de datos atípicos en algunos condominios nos puede indicar que existen casas en esos respectivos condominios que por ciertas razones estan valuadas mejor que el resto. Una mayor variedad de precios de venta indica que el condominio posee casas con distintas condiciones (variables listadas en la pregunta anterior) que hacen variar ese precio.
 
+### ¿Cómo afecta la antigüedad de la vivienda a precio de venta?
+
+```{r Relación antiguedad con precio}
+load_data()
+
+library(ggplot2)
+
+oldest_houses <- training_data %>% arrange(YearBuilt) %>% head(10)
+newest_houses <- training_data %>% arrange(desc(YearBuilt)) %>% head(10)
+
+comparison_houses <- rbind(oldest_houses, newest_houses)
+
+ggplot(comparison_houses, aes(x = YearBuilt, y = SalePrice)) +
+  geom_point(alpha = 0.5, color = "blue") +
+  geom_smooth(method = "lm", color = "red") +
+  ggtitle("Relación entre el año de construcción y el precio de venta") +
+  theme_minimal()
+
+```
+
+En este gráfico de dispersión se analiza en precio de las 10 viviendas más antiguas junto con las 10 más nuevas. Cómo se puede apreciar no existe una relación clara entre el precio de venta y la antigüedad de la casa. Implicando que la antigüedad de la casa no influye en su precio de venta.
+
 
 
 ### Análisis Exploratorio por Grupos
