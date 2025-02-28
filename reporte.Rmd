@@ -23,6 +23,97 @@ test_data <- read.csv("data/test.csv")
 summary(training_data)
 ```
 
+Para este dataset contamos con las siguientes variables:
+
+### **Variables Cuantitativas**  
+#### **Discretas** 
+- **Bedroom**: Número de habitaciones sobre el nivel del sótano.  
+- **Kitchen**: Número de cocinas.  
+- **TotRmsAbvGrd**: Total de habitaciones sobre el nivel del suelo (excluye baños).  
+- **Fireplaces**: Número de chimeneas.  
+- **GarageCars**: Tamaño del garaje en capacidad de autos.  
+- **BsmtFullBath**: Baños completos en el sótano.  
+- **BsmtHalfBath**: Medios baños en el sótano.  
+- **FullBath**: Baños completos sobre el nivel del suelo.  
+- **HalfBath**: Medios baños sobre el nivel del suelo.  
+- **MoSold**: Mes de venta.  
+- **YrSold**: Año de venta.  
+
+#### **Continuas**  
+- **SalePrice**: Precio de venta de la propiedad en dólares.  
+- **LotFrontage**: Pies lineales de calle conectados a la propiedad.  
+- **LotArea**: Tamaño del terreno en pies cuadrados.  
+- **MasVnrArea**: Área de revestimiento de mampostería en pies cuadrados.  
+- **BsmtFinSF1**: Pies cuadrados terminados de tipo 1 en el sótano.  
+- **BsmtFinSF2**: Pies cuadrados terminados de tipo 2 en el sótano.  
+- **BsmtUnfSF**: Pies cuadrados sin terminar del sótano.  
+- **TotalBsmtSF**: Pies cuadrados totales del sótano.  
+- **1stFlrSF**: Pies cuadrados del primer piso.  
+- **2ndFlrSF**: Pies cuadrados del segundo piso.  
+- **LowQualFinSF**: Pies cuadrados terminados de baja calidad (todos los pisos).  
+- **GrLivArea**: Pies cuadrados de área habitable sobre el nivel del suelo.  
+- **GarageArea**: Tamaño del garaje en pies cuadrados.  
+- **WoodDeckSF**: Área de la terraza de madera en pies cuadrados.  
+- **OpenPorchSF**: Área del porche abierto en pies cuadrados.  
+- **EnclosedPorch**: Área del porche cerrado en pies cuadrados.  
+- **3SsnPorch**: Área del porche de tres estaciones en pies cuadrados.  
+- **ScreenPorch**: Área del porche con malla en pies cuadrados.  
+- **PoolArea**: Área de la piscina en pies cuadrados.  
+- **MiscVal**: Valor en dólares de la característica adicional.  
+- **GarageYrBlt**: Año en que se construyó el garaje.  
+- **YearBuilt**: Año de construcción original.  
+- **YearRemodAdd**: Año de remodelación.  
+
+### **Variables Cualitativas**  
+#### **Nominales**
+- **MSZoning**: Clasificación general de zonificación.  
+- **Street**: Tipo de acceso por carretera.  
+- **Alley**: Tipo de acceso por callejón.  
+- **LandContour**: Nivelación del terreno.  
+- **Utilities**: Tipo de servicios públicos disponibles.  
+- **LotConfig**: Configuración del terreno.  
+- **Neighborhood**: Ubicación física dentro de la ciudad de Ames.  
+- **Condition1**: Proximidad a una carretera principal o ferrocarril.  
+- **Condition2**: Proximidad a una carretera principal o ferrocarril (si hay un segundo presente).  
+- **BldgType**: Tipo de vivienda.  
+- **HouseStyle**: Estilo de vivienda.  
+- **RoofStyle**: Tipo de techo.  
+- **RoofMatl**: Material del techo.  
+- **Exterior1st**: Revestimiento exterior de la casa.  
+- **Exterior2nd**: Revestimiento exterior de la casa (si hay más de un material).  
+- **MasVnrType**: Tipo de revestimiento de mampostería.  
+- **Foundation**: Tipo de cimentación.  
+- **Heating**: Tipo de calefacción.  
+- **CentralAir**: Aire acondicionado central (Sí/No).  
+- **Electrical**: Sistema eléctrico.  
+- **GarageType**: Ubicación del garaje.  
+- **GarageFinish**: Acabado interior del garaje.  
+- **PavedDrive**: Entrada pavimentada.  
+- **Fence**: Calidad de la cerca.  
+- **MiscFeature**: Característica adicional no cubierta en otras categorías.  
+- **SaleType**: Tipo de venta.  
+- **SaleCondition**: Condición de la venta.  
+
+#### **Ordinales**  
+- **MSSubClass**: Clase del edificio (número representa diferentes categorías).  
+- **LotShape**: Forma general de la propiedad (Regular, Irregular, etc.).  
+- **LandSlope**: Pendiente del terreno (Nivel, Suave, Empinada).  
+- **OverallQual**: Calidad general de los materiales y acabados (escala de 1 a 10).  
+- **OverallCond**: Calificación general del estado de la vivienda (escala de 1 a 10).  
+- **ExterQual**: Calidad del material exterior (Escala: Excelente, Buena, Regular, Pobre).  
+- **ExterCond**: Condición actual del material en el exterior (Escala similar a ExterQual).  
+- **BsmtQual**: Altura del sótano (Escala de calidad).  
+- **BsmtCond**: Condición general del sótano.  
+- **BsmtExposure**: Paredes del sótano con acceso al exterior o jardín.  
+- **BsmtFinType1**: Calidad del área terminada del sótano.  
+- **BsmtFinType2**: Calidad del segundo área terminada del sótano.  
+- **HeatingQC**: Calidad y condición de la calefacción.  
+- **KitchenQual**: Calidad de la cocina.  
+- **Functional**: Calificación de funcionalidad de la vivienda.  
+- **FireplaceQu**: Calidad de la chimenea.  
+- **GarageQual**: Calidad del garaje.  
+- **GarageCond**: Condición del garaje.  
+- **PoolQC**: Calidad de la piscina.  
 
 ## Análisis Exploratorio
 
