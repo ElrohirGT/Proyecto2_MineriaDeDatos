@@ -244,6 +244,7 @@ En el gráfico anterior podemos ver como se distribuye el precio de venta en cad
 load_data()
 
 library(ggplot2)
+library(dplyr)
 
 oldest_houses <- training_data %>% arrange(YearBuilt) %>% head(10)
 newest_houses <- training_data %>% arrange(desc(YearBuilt)) %>% head(10)
@@ -260,7 +261,60 @@ ggplot(comparison_houses, aes(x = YearBuilt, y = SalePrice)) +
 
 En este gráfico de dispersión se analiza en precio de las 10 viviendas más antiguas junto con las 10 más nuevas. Cómo se puede apreciar no existe una relación clara entre el precio de venta y la antigüedad de la casa. Implicando que la antigüedad de la casa no influye en su precio de venta.
 
+### ¿Existen patrones estacionales en las ventas de propiedades?
 
+```{r Año y mes con venta}
+load_data()
+
+library(ggplot2)
+
+ggplot(training_data, aes(x = factor(MoSold))) + 
+  geom_bar(fill = "darkgreen") +
+  ggtitle("Cantidad de casas vendidas por mes") +
+  xlab("Mes de venta") +
+  ylab("Cantidad de ventas")
+```
+
+Según se puede ver en la distribución de la cantidad de casas vendidas por mes, se puede ver que la mayor cantidad de casas se vende a lo largo de la mitad del año: Mayo, Junio y Julio. Indicando esto como los mejores meses para poder vender casas.
+
+### ¿Cómo varian las calificaciones de calidad y condición según el tipo de fachada y su material?
+
+```{r calidad y tipo en vivienda}
+
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+training_data$Exterior1st <- as.factor(training_data$Exterior1st)
+training_data$ExterQual <- as.factor(training_data$ExterQual)
+
+summary_stats <- training_data %>% group_by(Exterior1st, ExterQual) %>%
+  summarise(
+    mean_overallqual = mean(OverallQual, na.rm = TRUE),
+    mean_overallcond = mean(OverallCond, na.rm = TRUE),
+    .groups = 'drop'
+  )
+
+summary_stats
+
+ggplot(summary_stats, aes(x = Exterior1st, y = mean_overallqual, fill = ExterQual)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Calificación de Calidad (OverallQual) según el Tipo de Fachada y Material",
+       x = "Tipo de Fachada (Exterior1st)",
+       y = "Promedio OverallQual") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggplot(summary_stats, aes(x = Exterior1st, y = mean_overallcond, fill = ExterQual)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Calificación de Condición (OverallCond) según el Tipo de Fachada y Material",
+       x = "Tipo de Fachada (Exterior1st)",
+       y = "Promedio OverallCond") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+Se tiene las siguientes clasificaciones para ExterQual: Ex (Excelente, el material es de alta gama), Fa (Justo, la calidad del material es bastante baja), Gd (Bueno, la calidad del material es buena) y TA (Típico/Promedio, el material tiene una condición funcional pero no excepcional). Haciendo un análisis rápido se puede ver que la fachada que presenta las mejores condiciones con respecto a calidad y condición es la "Wd Sdng", se puede ver que existen fachadas que se ven perjudicadas a pesar de usar materiales de alta calidad, inidicando que estas fachadas es mejor abaratar sus costos y hacerlas con materiales que tengan una mejor duración ante la calidad.
 
 ### Análisis Exploratorio por Grupos
 
