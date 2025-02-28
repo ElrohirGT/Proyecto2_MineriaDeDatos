@@ -198,7 +198,30 @@ Como se puede ver por el diagrama, si hay una clara relación entre las construc
 
 // Preguntas de Prince
 
-### ¿?
+### ¿Cuáles son las características más correlacionadas con el precio de venta?
+
+```{r Correlación precio de venta}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+num_vars <- select_if(training_data, is.numeric)
+cor_matrix <- cor(num_vars, use = "pairwise.complete.obs")
+
+cor_df <- as.data.frame(cor_matrix)
+cor_df$Variable <- rownames(cor_df)
+cor_df <- cor_df %>% filter(Variable != "SalePrice") %>% select(Variable, SalePrice) %>% arrange(desc(SalePrice)) %>% head(6)
+
+ggplot(cor_df, aes(x = reorder(Variable, SalePrice), y = SalePrice)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  ggtitle("Correlación con el precio de venta") +
+  theme_minimal()
+
+```
+
+Se puede ver cuales son las variables que más se correlacionan con el precio de venta. Esto nos inidica cuales son las consideraciones a tomar en cuenta al momento de valuar una propiedad; aumentandolo o decreciendolo, según sea el caso.
 
 ### Análisis Exploratorio por Grupos
 
