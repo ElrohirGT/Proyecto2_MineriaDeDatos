@@ -223,6 +223,23 @@ ggplot(cor_df, aes(x = reorder(Variable, SalePrice), y = SalePrice)) +
 
 Se puede ver cuales son las variables que más se correlacionan con el precio de venta. Esto nos inidica cuales son las consideraciones a tomar en cuenta al momento de valuar una propiedad; aumentandolo o decreciendolo, según sea el caso.
 
+### ¿Cómo varia el precio de venta según el vecindario?
+
+```{r vencindario según precio de venta}
+load_data()
+
+library(ggplot2)
+
+ggplot(training_data, aes( x = Neighborhood, y = SalePrice)) + 
+  geom_boxplot(fill = "lightblue") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  ggtitle("Distribución de precios por vecindario")
+```
+
+En el gráfico anterior podemos ver como se distribuye el precio de venta en cada condominio. Se puede ver que hay condominios que tienen una variedad de precios bastante limitada como en los condominios de Blueste o NPlVIII. La presencia de datos atípicos en algunos condominios nos puede indicar que existen casas en esos respectivos condominios que por ciertas razones estan valuadas mejor que el resto. Una mayor variedad de precios de venta indica que el condominio posee casas con distintas condiciones (variables listadas en la pregunta anterior) que hacen variar ese precio.
+
+
+
 ### Análisis Exploratorio por Grupos
 
 ## Ingeniería de Características
