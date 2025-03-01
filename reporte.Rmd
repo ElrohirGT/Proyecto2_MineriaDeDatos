@@ -467,4 +467,6 @@ Se puede ver que cada clusters representa lo siguiente: las propiedades de menor
 
 ## Ingeniería de Características
 
+Como se pudo ver por el análisis exploratorio realizado con anterioridad salieron varios candidatos para predecir el precio de una casa, sin embargo, una de las variables que tuvo una fuerte correlación con el precio fue el tipo de fundación de la casa, ya que de forma muy consisntente las casas con una fundación PConc (Poured Concrete) tienen un precio más elevado comparado con las Slab o incluso las BrkTil (Brick and Tile).
+
 ## Modelos
