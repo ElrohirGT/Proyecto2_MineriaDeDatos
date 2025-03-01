@@ -409,6 +409,62 @@ Se tiene las siguientes clasificaciones para ExterQual: Ex (Excelente, el materi
 
 ### Análisis Exploratorio por Grupos
 
+
+```{r data preprocessing}
+load_data()
+
+library(dplyr)
+
+cl_data <- select_if(training_data, is.numeric)
+cl_data <- cl_data %>% select(-GarageYrBlt)
+cl_data[is.na(cl_data)] <- 0
+
+```
+
+<!-- Inicialmente, antes de realizar el clustering, lo que vamos a hacer es identificar qué variables sí aportan información al momento de hacer agrupamiento.   -->
+Para evitar cualquier tipo de ambigüedades y malinterpretación de los datos, se van a omitir todas las variables cualitativas, ya que no encajan correctamente en el agrupamiento hecho por el clustering.  
+
+Con respecto a las variables cuantitativas, solo se va a hacer la omisión de **GarageYrBlt**, debido a que el año en que se construyó el garaje no aporta mucha información al agrupamiento de los datos.  
+
+De igual forma, los valores identificados como `NA` se reescribieron como **0**, debido a que este era el valor que representaba ese tipo de datos en las columnas respectivas donde aparecía.
+
+
+Al final estas son las variables a analizar durante el agrupamiento: **`r colnames(cl_data)`**.
+
+Para determinar si existe una relación entre nuestras variables calculamos el estadístico de Hopkins.
+
+
+```{r Hopkins}
+
+library(hopkins)
+
+set.seed(123)
+hops <- hopkins(cl_data)
+cat("Estadistico de Hopkins: ", hops, "\n")
+
+
+```
+
+Al obtener 1 como valor de Hopkins, esto demuestra que nuestros datos tiene una fuerte estructura de agrupamiento. Ahora se va a determinar la cantidad óptima de grupos para hacer el agrupamiento. 
+
+```{r Método de codo}
+
+library(factoextra)
+
+fviz_nbclust(cl_data, kmeans, method = "wss") + ggtitle("Metodo de Codo")
+```
+
+Viendo el gráfico de codo se refleja que el número óptimo de grupos es de 3. Para el agrupamiento de los datos se va a utilizar K-means. Utilizando K-means obtenemos los siguientes resultados del agrupamiento:
+
+```{r Kmeans and analisis}
+km <- kmeans(cl_data, 3,iter.max =100)
+cl_data$grupo <- as.factor(km$cluster)
+aggregate(cl_data[, -ncol(cl_data)], by = list(cl_data$grupo), FUN = mean)
+
+```
+
+Se puede ver que cada clusters representa lo siguiente: las propiedades de menor tamaño, calidad y precio (grupo 1); las propiedades de tamaño y calidad medios, con precios intermedios (grupo 2); y las propiedades de mayor tamaño, calidad y precio (grupo 3). Este agrupamiento indica un comportamiento esperable en el que el grupo 3 tiene las variables con los valores más altos, al ser las propiedades con mejor calidad y precio. Esto implica que la utilización de una mayor cantidad de recursos hace que aumente tanto el valor de la propiedad como de su calidad. Las variables que más terminan influyendo en esta separación por grupos temrinan siendo aquellas relacionadas con el tamaño y la calidad de la propiedad.
+
 ## Ingeniería de Características
 
 ## Modelos
