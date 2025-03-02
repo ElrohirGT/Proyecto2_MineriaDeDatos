@@ -494,3 +494,68 @@ ggplot(training_data, aes(x = OverallQual, y = SalePrice)) +
 Como se puede ver por los datos el modelo realmente solo explica el 50.21% de la variabilidad en el precio, en este caso como solamente usa una variable eso se aplica a GrLivArea. Esto se confirma además con los residuos que son muy amplios, teniendo un 25% de errores en donde se subestimó el precio por $29,800 o menos y un máximo en donde se subestimó por $339,832!
 
 Aunque el p-value es mucho menor a 0.05 sabemos que esto no es suficiente puesto que en promedio según el Error estándar residual nuestro modelo se equivoca por $56,070 mas o menos.
+
+## Regresión para variables numéricas
+
+En este caso la regresión de las variables se va a realizar con las variables cuantitaticas; omitiendo todas la variables cualitativas, aunque tengan una representación numérica. De esta forma obtendremos una regresión lineal lo suficientemente precisa para predecir el precio de las casas.
+
+```{r variable selection}
+
+num_vars <- select_if(training_data, is.numeric)
+num_vars <- num_vars %>% select(-Id, -OverallQual, -MSSubClass, -OverallCond, -GrLivArea, -TotalBsmtSF)
+num_vars[is.na(num_vars)] <- 0
+
+model <- lm(SalePrice ~ ., data = num_vars)
+
+summary(model)
+
+```
+
+En el resumen del modelo realizado se puede ver que la distribución de los residuos presenta un rango amplio (-535822 a 309148), esto indica que el modelo puede tener dificultades para predecir algunos valores extremos. Estos valores de máximo y mínimo implica la presencia de datos atípicos, que es lo que hace que el modelo no prediga a la perfección datos extremos. 
+
+Evaluando las variables significativas podemos ver las siguientes: **YearBuilt, YearRemodAdd, MasVnrArea, BsmtFinSF1, BsmtUnfSF, X1stFlrSF, X2ndFlrSF, BedroomAbvGr, KitchenAbvGr, TotRmsAbvGrd, Fireplaces, GarageYrsBlt, GarageCars, WoodDeckSF, ScreenPorch**.
+
+Viendo a profuncdidad las métricas podemos encontrar lo siguiente. El R-cuadrado es 0.7785, significando que el modelo explica aproximadamente el 77.85% de la variabilidad en el precio de venta. Viendo que el R-cuadrado ajustado es ligeramente menor al R-cuadrado, demuestra que hay variables incluidas en el modelo que no estan contribuyendo a la predicción.  
+
+Para ver de forma gráfica el modelo de regresión, se hace el gráfico de dispersión entre cada una de las variables predictoras y el precio de venta. A continuación se muestra la relación de las variables significativas encontradas:
+
+```{r model graph}
+
+variables <- c("YearBuilt", "YearRemodAdd", "MasVnrArea", "BsmtFinSF1", "BsmtUnfSF", "X1stFlrSF", 
+               "X2ndFlrSF", "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", 
+               "Fireplaces", "GarageYrBlt", "GarageCars", "WoodDeckSF", "ScreenPorch")
+
+for (var in variables) {
+  print(
+    ggplot(model, aes_string(x = var, y = "SalePrice")) +
+      geom_point(alpha = 0.5, color = "blue") +   # Puntos de dispersión
+      geom_smooth(method = "lm", col = "red") +  # Línea de regresión
+      labs(title = paste("Relación entre", var, "y SalePrice"),
+           x = var, 
+           y = "Precio de Venta (USD)") +
+      theme_minimal()
+  )
+}
+
+
+```
+
+### Multicolinealidad entre variables
+
+```{r Multicolinealidad variables}
+# Cargar librerías necesarias
+library(corrplot)
+
+# Seleccionar solo las variables numéricas del dataset
+datos_num <- datos[, c("YearBuilt", "YearRemodAdd", "MasVnrArea", "BsmtFinSF1", "BsmtUnfSF", "X1stFlrSF", 
+               "X2ndFlrSF", "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", 
+               "Fireplaces", "GarageYrBlt", "GarageCars", "WoodDeckSF", "ScreenPorch")]
+
+# Calcular matriz de correlación
+cor_matrix <- cor(datos_num, use = "pairwise.complete.obs")
+
+# Visualizar la matriz de correlación
+corrplot(cor_matrix, method = "color", type = "lower", tl.cex = 0.8, tl.col = "black")
+
+
+```
