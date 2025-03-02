@@ -470,3 +470,27 @@ Se puede ver que cada clusters representa lo siguiente: las propiedades de menor
 Como se pudo ver por el análisis exploratorio realizado con anterioridad salieron varios candidatos para predecir el precio de una casa, sin embargo, una de las variables que tuvo una fuerte correlación con el precio fue el tipo de fundación de la casa, ya que de forma muy consisntente las casas con una fundación PConc (Poured Concrete) tienen un precio más elevado comparado con las Slab o incluso las BrkTil (Brick and Tile).
 
 ## Modelos
+
+Primero vamos a realizar un modelo univariad que intenta predecir el precio de venta de la casa usando solamente la variable OveralQual ya que en nuestro análisis exploratorio descubrimos que tiene un alto coeficiente de correlación con el precio de venta:
+```{r Modelo Univariado}
+load_data()
+modelo_qual <- lm(SalePrice ~ GrLivArea, data = training_data)
+
+# Resumen del modelo
+summary(modelo_qual)
+
+# Visualización del modelo con ggplot2
+library(ggplot2)
+ggplot(training_data, aes(x = OverallQual, y = SalePrice)) +
+  geom_point(color = "blue", alpha = 0.6) +        # Puntos de dispersión
+  geom_smooth(method = "lm", color = "red", se = TRUE) + # Línea de regresión
+  labs(title = "Modelo Univariado: OverallQual vs SalePrice",
+       x = "Area de vivienda (GrLivArea)",
+       y = "Precio de Venta (SalePrice)") +
+  theme_minimal()
+
+```
+
+Como se puede ver por los datos el modelo realmente solo explica el 50.21% de la variabilidad en el precio, en este caso como solamente usa una variable eso se aplica a GrLivArea. Esto se confirma además con los residuos que son muy amplios, teniendo un 25% de errores en donde se subestimó el precio por $29,800 o menos y un máximo en donde se subestimó por $339,832!
+
+Aunque el p-value es mucho menor a 0.05 sabemos que esto no es suficiente puesto que en promedio según el Error estándar residual nuestro modelo se equivoca por $56,070 mas o menos.
