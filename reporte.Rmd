@@ -543,19 +543,57 @@ for (var in variables) {
 ### Multicolinealidad entre variables
 
 ```{r Multicolinealidad variables}
-# Cargar librerías necesarias
 library(corrplot)
 
-# Seleccionar solo las variables numéricas del dataset
-datos_num <- datos[, c("YearBuilt", "YearRemodAdd", "MasVnrArea", "BsmtFinSF1", "BsmtUnfSF", "X1stFlrSF", 
+datos_num <- num_vars[, c("YearBuilt", "YearRemodAdd", "MasVnrArea", "BsmtFinSF1", "BsmtUnfSF", "X1stFlrSF", 
                "X2ndFlrSF", "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", 
                "Fireplaces", "GarageYrBlt", "GarageCars", "WoodDeckSF", "ScreenPorch")]
 
-# Calcular matriz de correlación
 cor_matrix <- cor(datos_num, use = "pairwise.complete.obs")
 
-# Visualizar la matriz de correlación
 corrplot(cor_matrix, method = "color", type = "lower", tl.cex = 0.8, tl.col = "black")
 
 
 ```
+
+Analizando el gráifco de correlación se puede busca aquellas variables en donde se encuentre una fuerte intensidad de color azul. Bajo este criterio se tiene multicolinealidad entre las sigueinte variables.
+
+**YearBuilt y YearRemoveAdd**: Existe correlación entre estas variables debido a que mientras más antigua sea la casa, más probable es que se hayan hecho remodelaciones en esta.
+
+**YearBuilt y GarageYrBlt**: Claramente esta correlación indica que al momento de construir la casa se contruyo simultaneamente el garaje.
+
+**TotRmsAbvGrd y GrLivArea**: La correlación positiva existe entre el núemro total de habitaciones sobre el nivel del suelo y el área habitable sobre el nivel del suelo demuestra que las casas más grandes tienden a tener más habitaciones.
+
+**GarageCars y GarageArea**: Para un garaje más ampio, se puede almacenar más carros.
+
+### Identificación de variables de mayor impacto
+
+```{r matriz correlación}
+cor(num_vars)
+```
+
+- YearBuilt (0.52): El año de construcción de la casa tiene una correlación positiva moderada. Esto sugiere que las casas más nuevas tienden a tener precios más altos.
+- YearRemodAdd (0.51): El año de la última remodelación también tiene una correlación positiva moderada. Esto indica que las casas remodeladas recientemente tienden a tener precios más altos.
+- MasVnrArea (0.47): El área de revestimiento de mampostería tiene una correlación positiva moderada. Esto sugiere que las casas con más revestimiento de mampostería tienden a tener precios más altos.
+- BsmtFinSF1 (0.39): El área de pies cuadrados terminados del sótano de tipo 1 tiene una correlación positiva moderada. Esto indica que los sótanos terminados contribuyen al precio de la casa.
+- X1stFlrSF (0.61): El área de pies cuadrados del primer piso tiene una correlación positiva fuerte. Esto es lógico, ya que un área de primer piso más grande generalmente significa una casa más grande y, por lo tanto, más cara.
+- FullBath (0.56): El número de baños completos tiene una correlación positiva moderada. Más baños completos generalmente aumentan el precio de la casa.
+- TotRmsAbvGrd (0.53): El número total de habitaciones sobre el nivel del suelo tiene una correlación positiva moderada. Más habitaciones generalmente significan una casa más grande y, por lo tanto, más cara.
+- Fireplaces (0.47): El número de chimeneas tiene una correlación positiva moderada. Las chimeneas son una característica deseable que puede aumentar el precio de la casa.
+- GarageCars (0.64): El tamaño del garaje en capacidad de automóviles tiene una correlación positiva fuerte. Un garaje más grande generalmente aumenta el precio de la casa.
+- GarageArea (0.62): El tamaño del garaje en área tiene una correlación positiva fuerte. Similar a GarageCars, un garaje más grande aumenta el precio.
+- WoodDeckSF (0.32): El área de la terraza de madera tiene una correlación positiva moderada. Las terrazas de madera son una característica deseable que puede aumentar el precio.
+- OpenPorchSF (0.32): El área del porche abierto tiene una correlación positiva moderada. Similar a la terraza de madera, un porche abierto es una característica deseable.
+
+Habiendo analizado la relación entre variables anteriormente se van a omitir las variables **GarageCars** y **YearRemodAdd**, debido a que estan altamente correlacionadas con **GarageArea** y **YearBuilt** respectivamente. 
+
+### Identificar sobreajuste
+
+```{r overfitting}
+
+summary(model)
+
+```
+
+Para identificar si el modelo esta sobreajustado, se puede demostrar comparando los valores de R^2 y R^2 ajustado. En este caso se que ve que estos valores no presentan una diferencia significativa entre sí, indicanco que el modelo no se encuentra sobre ajustado.
+
