@@ -298,6 +298,7 @@ library(ggplot2)
 library(dplyr)
 
 num_vars <- select_if(training_data, is.numeric)
+num_vars <- num_vars %>% select(-Id, -OverallQual, -MSSubClass, -OverallCond)
 cor_matrix <- cor(num_vars, use = "pairwise.complete.obs")
 
 cor_df <- as.data.frame(cor_matrix)
@@ -597,3 +598,32 @@ summary(model)
 
 Para identificar si el modelo esta sobreajustado, se puede demostrar comparando los valores de R^2 y R^2 ajustado. En este caso se que ve que estos valores no presentan una diferencia significativa entre sí, indicanco que el modelo no se encuentra sobre ajustado.
 
+### Nuevo modelo
+
+Debido a que se encontró multicolianidad entre las variables, se va a reajustar el modelo usando las variables que se encontraron como significativas y omitiendo aquellas que presentaron multicolianidad.
+
+```{r new model}
+
+num_vars <- select_if(training_data, is.numeric)
+num_vars <- num_vars %>% select(YearBuilt, MasVnrArea, BsmtFinSF1, X1stFlrSF, FullBath, TotRmsAbvGrd, Fireplaces, GarageArea, WoodDeckSF, OpenPorchSF, SalePrice)
+num_vars[is.na(num_vars)] <- 0
+
+new_model <- lm(SalePrice ~ ., data = num_vars)
+
+summary(new_model)
+
+```
+
+Los residuos del modelo muestran una alta dispersión, con errores que varían desde -479296 hasta 373149, lo que indica que el modelo no es igualmente preciso para todas las predicciones. Aunque la mediana de los residuos está cerca de cero (-2134), lo que sugiere poco sesgo general, la amplia dispersión y la presencia de valores atípicos (outliers) indican que el modelo tiene margen de mejora. 
+
+
+```{r graph new model}
+plot(new_model$fitted.values, new_model$residuals,
+     xlab = "Valores Ajustados",
+     ylab = "Residuos",
+     main = "Residuos vs. Valores Ajustados")
+abline(h = 0, col = "red") # Línea horizontal en cero
+
+```
+
+El gráfico muestra que los errores del modelo se distribuyen bastante bien alrededor de cero, lo que sugiere que el modelo generalmente hace predicciones equilibradas. Sin embargo, los errores tienden a dispersarse más a medida que las predicciones del modelo aumentan, lo que indica que el modelo podría ser menos preciso para las predicciones más altas. Además, hay algunos errores muy grandes, tanto positivos como negativos, lo que sugiere que el modelo tiene dificultades para predecir con precisión algunos valores extremos.
