@@ -117,8 +117,6 @@ Para este dataset contamos con las siguientes variables:
 
 ## Análisis Exploratorio
 
-// Preguntas de Flavio
-
 ### ¿Cuál es el comportamiento de la variable SalesPrice?
 
 ```{r Histograma de SalesPrice}
@@ -286,8 +284,6 @@ ggplot(top_houses, aes(x = reorder(Foundation, -mean_sale_price), y = mean_sale_
 ```
 
 Como se puede ver por el diagrama, si hay una clara relación entre las construcciones realizadas por PConc y a tener un precio de venta más elevado en promedio lo que nos indica que esta variable pordría ser una muy buena predictora del precio de una casa.
-
-// Preguntas de Prince
 
 ### ¿Cuáles son las características más correlacionadas con el precio de venta?
 
@@ -627,3 +623,48 @@ abline(h = 0, col = "red") # Línea horizontal en cero
 ```
 
 El gráfico muestra que los errores del modelo se distribuyen bastante bien alrededor de cero, lo que sugiere que el modelo generalmente hace predicciones equilibradas. Sin embargo, los errores tienden a dispersarse más a medida que las predicciones del modelo aumentan, lo que indica que el modelo podría ser menos preciso para las predicciones más altas. Además, hay algunos errores muy grandes, tanto positivos como negativos, lo que sugiere que el modelo tiene dificultades para predecir con precisión algunos valores extremos.
+
+## Comparativa de los modelos
+
+Ahora vamos a utilizar ambos modelos con los datos de prueba y comparar las respuestas de ambos:
+```{r Comparativa de los modelos}
+load_data()
+
+num_vars <- select_if(training_data, is.numeric)
+num_vars <- num_vars %>% select(YearBuilt, MasVnrArea, BsmtFinSF1, X1stFlrSF, FullBath, TotRmsAbvGrd, Fireplaces, GarageArea, WoodDeckSF, OpenPorchSF, SalePrice)
+num_vars[is.na(num_vars)] <- 0
+
+new_model <- lm(SalePrice ~ ., data = num_vars)
+
+
+num_vars <- select_if(test_data, is.numeric)
+num_vars <- num_vars %>% select(YearBuilt, MasVnrArea, BsmtFinSF1, X1stFlrSF, FullBath, TotRmsAbvGrd, Fireplaces, GarageArea, WoodDeckSF, OpenPorchSF)
+num_vars[is.na(num_vars)] <- 0
+
+modelo_qual <- lm(SalePrice ~ GrLivArea, data = training_data)
+
+num_vars$MultPredicted <- predict(new_model, num_vars)
+num_vars$SinglePredicted <- predict(modelo_qual, test_data)
+
+summary(modelo_qual)
+summary(new_model)
+
+anova(modelo_qual, new_model)
+```
+
+Como podemos ver por el resumen de ambos modelos, el modelo que utiliza varias variables explica un 69% de la variabilidad de los datos mientras que el de una sola variable apenas el 50% (casi igual que tirar una moneda). Realizando la prueba de ANOVA ambos modelos tienen el mismo valor p, lo que nos dice que aunque explica más de la variabilidad de las variables realmente no es un modelo que tenga más significancia.
+
+# Conclusiones
+
+Las siguientes gráficas nos muestran las distribuciones de la variable SalePrice predichas por ambos modelos:
+
+```{r Conclusiones}
+hist(num_vars$SinglePredicted, main = "Distribución de SalePrice de acuerdo al modelo de una sola variable")
+hist(num_vars$MultPredicted, main = "Distribución de SalePrice de acuerdo al modelo de varias variables")
+```
+
+Como se puede ver por los histogramas ambas variables predichas siguen una distribución normal.
+
+En conclusión, ambos modelos son malos para predecir el precio de las casas (alcanzando a lo mucho un 69% de variabilidad explicada), lo que nos dice que no siempre solo con tener más variables tendremos un modelo que prediga mejor los datos sino que es importante considerar también la significancia que tienen estos con la variable objetivo y encontrar datos que realmente se correlaciones de forma fuerte con la variable objetivo.
+
+Con respecto a este estudio nuestras recomendaciones es buscar nuevas fuentes de información si se desea tener un modelo con mayor accuracy de predicción. 
