@@ -23,6 +23,8 @@ test_data <- read.csv("data/test.csv")
 summary(training_data)
 ```
 
+[Link al repo](https://github.com/ElrohirGT/Proyecto2_MineriaDeDatos)
+
 Para este dataset contamos con las siguientes variables:
 
 ### **Variables Cuantitativas**  
