@@ -5,6 +5,8 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
+Link del repositorio: https://github.com/ElrohirGT/Proyecto2_MineriaDeDatos
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
