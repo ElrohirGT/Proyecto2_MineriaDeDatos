@@ -53,7 +53,7 @@ cat("RMSE:", RMSE)
 
 ```
 
-Este modelo predice la data con un 76% de variabilidad, además su RMSE es de 38 mil dólares lo cual sigue siendo alto aunque más bajo que el los lineales.
+Este modelo predice la data con un 76% de variabilidad, además su RMSE es de 38 mil dólares lo cual sigue siendo alto aunque más bajo que el de los lineales.
 
 ## Árboles de varios niveles
 
@@ -137,6 +137,8 @@ Como la distribución sí es normal entonces si podemos realizar las divisiones 
 * Medianas: Todas las casas entre media+- 1.5 desviaciones estándar en valor.
 * Caras: Todas las casas mayores a media + 1.5 desviaciones estándar en valor.
 
+## Árbol de Clasificación
+
 ```{r}
 # Cargar librerías
 library(rpart)       # Árboles de clasificación
@@ -159,3 +161,128 @@ modelo_arbol <- rpart(Category ~ GrLivArea + OverallQual + GarageCars + YearBuil
 rpart.plot(modelo_arbol, type = 5, extra = 104, fallen.leaves = TRUE, cex = 0.8, box.palette = "RdYlGn")
 ```
 
+## Eficiencia del modelo
+
+```{r model efficiency}
+
+probabilidades <- predict(modelo_arbol, test_data, type = "prob")
+
+prod_confidence <- mean(apply(probabilidades, 1, max))
+
+cat("Eficiencia del modelo:",prod_confidence)
+
+```
+
+A continuación podemos la eficiencia del modelo creado anteriormente. Obtenemos que su eficiencia de rpedicción es del 92%; superando el nivel de predición de los modelos de regresión.
+
+## Matriz de confusión del modelo de clasificación
+
+Acontinuación se muestra la matriz de confusión del modelo: 
+
+```{r confusion matrix}
+predicciones <- predict(modelo_arbol, test_data, type = "class")
+
+confusion_matrix <- table(Predicho = predicciones, Real = training_data$Category[-1])
+
+confusion_matrix
+
+```
+
+Podemos ver que el modelo presenta problemas acertando la clasificación de casas baratas y caras. Podemos ver la aparición de falsos negativos, viendo que las clases reales fueron mal clasificadas con otra clase. La presencia de estos falsos negativos y falsos positivos indican que el modelo no es preciso al 100%, demostrando que presenta una mejor predicción para el tipo de casa mediana.
+
+## Modelo con validación cruzada
+
+Ahora vamos a crear un nuevo modelo ahora utilizando la validación cruzada.
+```{r}
+library(rpart)
+library(caret)
+
+set.seed(123)
+splitIndex <- createDataPartition(training_data$Category, p = 0.8, list = FALSE)
+train_data <- training_data[splitIndex, ]
+test_data <- training_data[-splitIndex, ]
+train_control <- trainControl(method = "cv", number = 10)
+
+modelo_tree_cv <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                        data = train_data,
+                        method = "rpart",
+                        trControl = train_control,
+                        tuneLength = 10)
+
+predicciones <- predict(modelo_tree_cv, newdata = test_data)
+
+confusionMatrix(predicciones, test_data$Category)
+
+```
+
+Con este nuevo modelo podemos ver una mejora significativa en comparación con el modelo anterior. Ahora en la matriz de confusión podemos notar una menor presencia de falsos negativos y falsos positivos. 
+
+
+
+```{r different tree models}
+
+library(caret)
+library(rpart)
+library(rpart.plot)
+
+train_control <- trainControl(method = "cv", number = 10)
+set.seed(123)
+
+#Modelo con profundidad 3
+modelo_3 <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                  data = training_data,
+                  method = "rpart",
+                  trControl = train_control,
+                  tuneGrid = expand.grid(cp = 0.01),
+                  control = rpart.control(maxdepth = 3))
+
+#Modelo con profundidad 5
+modelo_5 <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                  data = training_data,
+                  method = "rpart",
+                  trControl = train_control,
+                  tuneGrid = expand.grid(cp = 0.01),
+                  control = rpart.control(maxdepth = 5))
+
+#Modelo con profundidad 7
+modelo_7 <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                  data = training_data,
+                  method = "rpart",
+                  trControl = train_control,
+                  tuneGrid = expand.grid(cp = 0.01),
+                  control = rpart.control(maxdepth = 7))
+
+# Precisión de los modelos
+acc_3 <- max(modelo_3$results$Accuracy)
+acc_5 <- max(modelo_5$results$Accuracy)
+acc_7 <- max(modelo_7$results$Accuracy)
+
+data.frame(Profundidad = c(3, 5, 7),
+                         Accuracy = c(acc_3, acc_5, acc_7))
+```
+
+Se crearan modelos con 3, 5 y 7 niveles de profundidad. Viendo la precisión de cada uno de estos árboles podemos ver que el mejor de los 3 modelos es aquel que tiene 7 niveles, esto demuestra que a mayor profundidad, se tiene una mejor clasificación.
+
+## Random Forest
+
+```{r Random Fores}
+library(caret)
+library(randomForest)
+library(ggplot2)
+
+train_control <- trainControl(method = "cv", number = 10)
+
+set.seed(123)
+modelo_rf <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                   data = training_data,
+                   method = "rf",
+                   trControl = train_control,
+                   tuneLength = 3)
+acc_rf <- max(modelo_rf$results$Accuracy)
+acc_tree <- max(modelo_7$results$Accuracy)
+
+data.frame(Modelo = c("Árbol de Decisión", "Random Forest"),
+                          Accuracy = c(acc_tree, acc_rf))
+```
+
+Podemos ver que los random forest presentan una mayor precisión con respecto a los árboles de decisión. Es importante destacar también que la creación de los random forest es mayor a la de los árboles de decisión entonces, viendo que la precisión en este caso no fue muy alta. Lo demuestra que se debe de tomar la decisión entre querer una mejor precisión o una mejor eficiencia algoritmica.
