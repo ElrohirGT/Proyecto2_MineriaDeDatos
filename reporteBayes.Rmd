@@ -1,0 +1,114 @@
+---
+title: "reporteBayes"
+author: "Flavio Galán, José Prince"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+load_data <- function(){
+  training_data <- read.csv("data/train.csv")
+  test_data <- read.csv("data/test.csv")
+}
+
+training_data <- read.csv("data/train.csv")
+training_data_sorted <- training_data[order(training_data$SalePrice, decreasing = TRUE),]
+```
+
+[Link al Repositorio](https://github.com/ElrohirGT/Proyecto2_MineriaDeDatos)
+
+# Modelado de Bayes
+
+Debido al modelado de Bayes tenemos que discretizar la variable objetivo, en nuestro caso es SalePrice. La vamos a dividir en 4 categorìas: LOW, SEMI, MEDIUM, HIGH
+
+Primero vamos a dividir el dataset the entrenamiento en 2 grupos, uno de entrenamiento con el 70% de los datos y otro de validación con el 30% de los datos. 
+
+```{r Naïve Bayes}
+library(e1071)  # For Naïve Bayes
+library(dplyr)
+library(caret)  # For data splitting
+
+load_data()
+
+# Define price categories (Low, Medium, High) using quantiles
+training_data$SalePriceCategory <- cut(training_data$SalePrice, 
+                            breaks = quantile(training_data$SalePrice, probs = c(0, 0.33, 0.66, 1), na.rm = TRUE), 
+                            labels = c("Barata", "Media", "Cara"), 
+                            include.lowest = TRUE)
+
+df <- training_data %>% select(-SalePrice, -Id)  # Remove ID and continuous SalePrice
+
+df <- df %>% mutate_if(is.character, as.factor)
+
+set.seed(42)
+train_index <- createDataPartition(training_data$SalePriceCategory, p = 0.7, list = FALSE)
+train_data <- df[train_index, ]
+test_data <- df[-train_index, ]
+
+nb_model <- naiveBayes(SalePriceCategory ~ ., data = train_data)
+
+predictions <- predict(nb_model, test_data)
+
+conf_matrix <- confusionMatrix(predictions, test_data$SalePriceCategory)
+print(conf_matrix)
+```
+
+Para predecir la variable de SalePrice el modelo tuvo un _Accuracy_ del 70%, lo que significa que sí ha encontrado patrones que implican un valor de venta mayor/menor. Comparando este modelo con los otros realizados con anterioridad el que mejor lo ha realizado hasta ahora es el de naïve Bayes aunque por muy poco, puesto que apenas superó por 1% al modelo de árboles de regresión.
+
+Como se puede ver por la matriz de confusión la clase en la que más errores tuvo fue la clase barata, puesto que de todos los valores clasificados en "Barato" solamente el 65% fueron clasificados de forma correcta. La segunda categoría con más errores fue la media con el 67% clasificados de forma correcta y finalmente la Cara con 80%.
+
+Es posible que esto se deba a los puntos atípicos del dataset se parte del precio de las casas, por lo que si quitamos las 2 casas con precio mayor tenemos:
+
+```{r Naïve Bayes - Sin puntos atípicos}
+library(e1071)  # For Naïve Bayes
+library(dplyr)
+library(caret)  # For data splitting
+
+library(ggplot2)
+
+load_data()
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+upper_limit <- mean_price + (4 * sd_price)
+
+ggplot(training_data, aes(x = SalePrice)) +
+  geom_histogram(aes(y = ..density..), binwidth = 10000, fill = "blue", color = "black", alpha = 0.7) +
+  geom_density(color = "red", size = 1.2) +
+  geom_vline(xintercept = upper_limit, color = "purple")+
+  geom_vline(xintercept = mean(training_data$SalePrice), color = "green")+
+  theme_minimal() +
+  labs(title = "Distribution of House Sale Prices with Density Curve",
+       x = "Sale Price",
+       y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+filtered_training_data <- training_data %>% filter(SalePrice <= upper_limit)
+
+# Define price categories (Low, Medium, High) using quantiles
+filtered_training_data$SalePriceCategory <- cut(filtered_training_data$SalePrice, 
+                            breaks = quantile(filtered_training_data$SalePrice, probs = c(0, 0.33, 0.66, 1), na.rm = TRUE), 
+                            labels = c("Barata", "Media", "Cara"),
+                            include.lowest = TRUE)
+
+df <- filtered_training_data %>% select(-SalePrice, -Id)  # Remove ID and continuous SalePrice
+
+df <- df %>% mutate_if(is.character, as.factor)
+
+set.seed(42)
+train_index <- createDataPartition(filtered_training_data$SalePriceCategory, p = 0.7, list = FALSE)
+train_data <- df[train_index, ]
+test_data <- df[-train_index, ]
+
+nb_model <- naiveBayes(SalePriceCategory ~ ., data = filtered_training_data)
+
+predictions <- predict(nb_model, test_data)
+
+conf_matrix <- confusionMatrix(predictions, test_data$SalePriceCategory)
+print(conf_matrix)
+```
+
+Después de probar varias iteraciones se obtuvo la mejor cantidad de resultados removiendo los puntos atípicos, en donde atípicos significa "Tienen un precio mayor a la media + 4 veces la desviación estándar". Como se puede ver el _Accuracy_ del modelo tuvo una ligera mejora (ascendió a 73%) y la eficiencia del modelo también aumentó levemente como se ve por la matriz de confusión.
