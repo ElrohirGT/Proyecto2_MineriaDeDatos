@@ -10,43 +10,68 @@ Link del repositorio: https://github.com/ElrohirGT/Proyecto2_MineriaDeDatos
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-load_data <- function(){
-  training_data <- read.csv("data/train.csv")
-  test_data <- read.csv("data/test.csv")
-}
-
 library(class)
 library(caret)
 library(dplyr)
 
-load_data()
+# Cargar datos
+training_data <- read.csv("data/train.csv")
 
+# Reemplazar valores NA con 0
 training_data[is.na(training_data)] <- 0
 
+# Verificar que la columna SalePrice existe
+if (!"SalePrice" %in% colnames(training_data)) {
+  stop("Error: La columna SalePrice no está en el dataset.")
+}
+
+# Seleccionar solo columnas numéricas
 training_data_numeric <- training_data %>% select_if(is.numeric)
 
-predcitors <- training_data_numeric %>% select(-SalePrice)
+# Verificar que training_data_numeric tiene datos
+if (ncol(training_data_numeric) == 0) {
+  stop("Error: No se encontraron columnas numéricas en training_data.")
+}
+
+# Definir variables predictoras y respuesta
+predictors <- training_data_numeric %>% select(-SalePrice)
+
+# Verificar si predictors está vacío
+if (ncol(predictors) == 0) {
+  stop("Error: No hay variables predictoras después de eliminar SalePrice.")
+}
 
 response <- training_data_numeric$SalePrice
 
+# Semilla para reproducibilidad
 set.seed(123)
 
-#Separamos el conjunto de entrenamiento en dos
+# Separar datos en entrenamiento (70%) y prueba (30%)
 train_indices <- createDataPartition(response, p = 0.7, list = FALSE)
 
 train_data <- predictors[train_indices, ]
 train_labels <- response[train_indices]
 
+test_data <- predictors[-train_indices, ]
+test_labels <- response[-train_indices]
 
-train_subset <- training_data[train_indices, ]
-validation_subset <- training_data[-train_indices, ]
 ```
 
 
 Elaboración del modelo de regresión usando K nearest Neighbors:
 
 ```{r}
-k <- round(sqrt(nrow(datos)),0)
+k <- round(sqrt(nrow(train_data)),0)
+knn_predictions <- knn(train = train_data,
+                       test = test_data,
+                       cl = train_labels,
+                       k = k)
+
+knn_predictions <- as.numeric(as.character(knn_predictions))
+
+results <- data.frame(Real = test_labels, Predicho = knn_predictions)
+head(results)
 ```
 
+Podemos ver que en la tabla anterior se hace una comparación entre los datos predichos por el modelo y los datos reales. Para los datos predichos se puede ver que los datos tienen un desfase del 16% para la predicción del dato real. 
 
