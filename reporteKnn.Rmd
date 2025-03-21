@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(class)
 library(caret)
 library(dplyr)
+library(Metrics)
 
 # Cargar datos
 training_data <- read.csv("data/train.csv")
@@ -20,28 +21,18 @@ training_data <- read.csv("data/train.csv")
 # Reemplazar valores NA con 0
 training_data[is.na(training_data)] <- 0
 
-# Verificar que la columna SalePrice existe
-if (!"SalePrice" %in% colnames(training_data)) {
-  stop("Error: La columna SalePrice no está en el dataset.")
-}
-
+training_data <- training_data[-1]
 # Seleccionar solo columnas numéricas
 training_data_numeric <- training_data %>% select_if(is.numeric)
-
-# Verificar que training_data_numeric tiene datos
-if (ncol(training_data_numeric) == 0) {
-  stop("Error: No se encontraron columnas numéricas en training_data.")
-}
 
 # Definir variables predictoras y respuesta
 predictors <- training_data_numeric %>% select(-SalePrice)
 
-# Verificar si predictors está vacío
-if (ncol(predictors) == 0) {
-  stop("Error: No hay variables predictoras después de eliminar SalePrice.")
-}
-
 response <- training_data_numeric$SalePrice
+
+# Normalización (Estandarización Z-score)
+preProc <- preProcess(predictors, method = c("center", "scale"))
+predictors_scaled <- predict(preProc, predictors)
 
 # Semilla para reproducibilidad
 set.seed(123)
@@ -57,10 +48,10 @@ test_labels <- response[-train_indices]
 
 ```
 
-
+# Modelo de regresión de KNN
 Elaboración del modelo de regresión usando K nearest Neighbors:
 
-```{r}
+```{r KNN model}
 k <- round(sqrt(nrow(train_data)),0)
 knn_predictions <- knn(train = train_data,
                        test = test_data,
@@ -74,4 +65,20 @@ head(results)
 ```
 
 Podemos ver que en la tabla anterior se hace una comparación entre los datos predichos por el modelo y los datos reales. Para los datos predichos se puede ver que los datos tienen un desfase del 16% para la predicción del dato real. 
+
+Ahora analizaremos las métricas del modelo para conocer que tan bueno es el modelo. 
+
+```{r R2}
+mse_value <- mse(test_labels, knn_predictions)
+rmse_value <- rmse(test_labels, knn_predictions)
+mae_value <- mae(test_labels, knn_predictions)
+r2_value <- 1 - (sum((knn_predictions - test_labels)^2) / sum((test_labels - mean(test_labels))^2))
+
+cat("MSE:", mse_value, "\n")
+cat("RMSE:", rmse_value, "\n")
+cat("MAE:", mae_value, "\n")
+cat("R²:", round(r2_value * 100, 2), "%\n")
+```
+
+Analizando las métricas obtenicas vemos los siguientes indicios. Analizando el RMSE, proveniente del MSE, vemos que hay grandes diferencias entre las predicciones y los valores reales; el modelo se equivoca en aproximadamente $63,199.32. Ahora analizando el MAE obtenemos un error promedio de $41,029.34, lo que indica que las predicciones estan desviadas por este monto (en promedio). Por último, el R^2 de 34.23% indica que solo el 34.23% de la variabilidad en los precios de las casas se explica con la variable SalePrice; este valor tan bajo demuestra que el modelo no está captando bien los patrones en los datos y que hay un 66% de la variabilidad que el modelo no explica.
 
