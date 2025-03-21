@@ -15,6 +15,8 @@ library(caret)
 library(dplyr)
 library(Metrics)
 
+normalize <- function(x) { (x - min(x)) / (max(x) - min(x)) }
+
 # Cargar datos
 training_data <- read.csv("data/train.csv")
 
@@ -40,10 +42,10 @@ set.seed(123)
 # Separar datos en entrenamiento (70%) y prueba (30%)
 train_indices <- createDataPartition(response, p = 0.7, list = FALSE)
 
-train_data <- predictors[train_indices, ]
+train_data <- predictors_scaled[train_indices, ]
 train_labels <- response[train_indices]
 
-test_data <- predictors[-train_indices, ]
+test_data <- predictors_scaled[-train_indices, ]
 test_labels <- response[-train_indices]
 
 ```
@@ -53,6 +55,9 @@ Elaboración del modelo de regresión usando K nearest Neighbors:
 
 ```{r KNN model}
 k <- round(sqrt(nrow(train_data)),0)
+
+train_labels <- as.factor(train_labels)
+
 knn_predictions <- knn(train = train_data,
                        test = test_data,
                        cl = train_labels,
@@ -82,3 +87,80 @@ cat("R²:", round(r2_value * 100, 2), "%\n")
 
 Analizando las métricas obtenicas vemos los siguientes indicios. Analizando el RMSE, proveniente del MSE, vemos que hay grandes diferencias entre las predicciones y los valores reales; el modelo se equivoca en aproximadamente $63,199.32. Ahora analizando el MAE obtenemos un error promedio de $41,029.34, lo que indica que las predicciones estan desviadas por este monto (en promedio). Por último, el R^2 de 34.23% indica que solo el 34.23% de la variabilidad en los precios de las casas se explica con la variable SalePrice; este valor tan bajo demuestra que el modelo no está captando bien los patrones en los datos y que hay un 66% de la variabilidad que el modelo no explica.
 
+# Modelos de regresión
+
+Para analizar los diferentes modelos de regresión vamos a comparar el R^2 a través de los R^2 que se ha calculado para cada uno de estos modelos.
+
+| Modelo                       | R^2 (%)     |
+|------------------------------|-------------|
+| Modelo de regresión lineal   | 69.97       |
+| Modelo de árbol de regresión | 76.54       |
+| Modelo de naive bayes        | 70.71       |
+| Modelo de KNN                | 58.53       |
+
+Se puede ver que el modelo que funcionó mejor fue el de árbol de regresión y el modelo que tuvo peor rendimiento fue el de KNN.
+
+# Modelo KNN de clasificación
+
+```{r Clasification Model}
+
+# Calcular media y desviación estándar
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir umbrales
+lower_threshold <- mean_price - 1.5 * sd_price
+upper_threshold <- mean_price + 1.5 * sd_price
+
+# Asignar categorías correctamente
+training_data$SalePriceCategory <- case_when(
+  training_data$SalePrice < lower_threshold ~ "Barata",
+  training_data$SalePrice > upper_threshold ~ "Cara",
+  TRUE ~ "Mediana"
+)
+
+# Convertir en factor
+training_data$SalePriceCategory <- factor(training_data$SalePriceCategory)
+
+# Ver distribución de las categorías
+table(training_data$SalePriceCategory)
+
+# Partición de datos con la columna correcta
+set.seed(123)
+train_indices <- createDataPartition(training_data$SalePriceCategory, p = 0.7, list = FALSE)
+
+train_data <- training_data[train_indices, ]
+test_data <- training_data[-train_indices, ]
+
+# Normalizar solo variables numéricas
+train_data_numeric <- as.data.frame(lapply(train_data %>% select_if(is.numeric), normalize))
+test_data_numeric <- as.data.frame(lapply(test_data %>% select_if(is.numeric), normalize))
+
+# Definir variables predictoras y respuesta
+train_labels <- train_data$SalePriceCategory
+test_labels <- test_data$SalePriceCategory
+
+# Definir número óptimo de vecinos
+k <- round(sqrt(nrow(train_data)), 0)
+
+# Aplicar KNN
+knn_predictions <- knn(train = train_data_numeric,
+                       test = test_data_numeric,
+                       cl = train_labels,
+                       k = k)
+
+```
+
+El modelo de clasificación se realizó en base a estos parámetros:
+
+* Baratas: Todas las casas menores a media - 1.5 desviaciones estándar en valor.
+* Medianas: Todas las casas entre media+- 1.5 desviaciones estándar en valor.
+* Caras: Todas las casas mayores a media + 1.5 desviaciones estándar en valor.
+
+```{r Confusion Matrix}
+# Matriz de confusión
+conf_matrix <- confusionMatrix(knn_predictions, test_labels)
+print(conf_matrix)
+```
+
+El análisis de la matriz de confusión muestra que el modelo tiene un alto accuracy (94.74%), lo que indica que, en general, el clasificador está funcionando bien, pero presenta una fuerte desbalance entre las clases. Para la clase "Barata", la sensibilidad es 0, lo que significa que el modelo no ha identificado ninguna casa como "Barata". Esto es un indicio de que hay muy pocos ejemplos de esta clase en los datos y el modelo no logra capturarlos correctamente. En cuanto a la clase "Cara", la sensibilidad es bastante baja (0.44), pero tiene un valor perfecto en la especificidad (1), lo que sugiere que cuando el modelo predice "Cara", es casi siempre correcta. Para la clase "Mediana", el modelo muestra una excelente sensibilidad (1), lo que significa que identifica correctamente casi todas las casas medianas. Sin embargo, su especificidad es baja (0.39), lo que indica que las casas que no son medianas tienden a ser clasificadas erróneamente como medianas.
