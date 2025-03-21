@@ -1,0 +1,52 @@
+---
+title: "ReporteArboles"
+author: "Flavio Galán, José Prince"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+Link del repositorio: https://github.com/ElrohirGT/Proyecto2_MineriaDeDatos
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+load_data <- function(){
+  training_data <- read.csv("data/train.csv")
+  test_data <- read.csv("data/test.csv")
+}
+
+library(class)
+library(caret)
+library(dplyr)
+
+load_data()
+
+training_data[is.na(training_data)] <- 0
+
+training_data_numeric <- training_data %>% select_if(is.numeric)
+
+predcitors <- training_data_numeric %>% select(-SalePrice)
+
+response <- training_data_numeric$SalePrice
+
+set.seed(123)
+
+#Separamos el conjunto de entrenamiento en dos
+train_indices <- createDataPartition(response, p = 0.7, list = FALSE)
+
+train_data <- predictors[train_indices, ]
+train_labels <- response[train_indices]
+
+
+train_subset <- training_data[train_indices, ]
+validation_subset <- training_data[-train_indices, ]
+```
+
+
+Elaboración del modelo de regresión usando K nearest Neighbors:
+
+```{r}
+k <- round(sqrt(nrow(datos)),0)
+```
+
+

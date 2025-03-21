@@ -11,7 +11,7 @@
 
 <meta name="author" content="Flavio Galán, José Prince" />
 
-<meta name="date" content="2025-03-12" />
+<meta name="date" content="2025-03-16" />
 
 <title>reporteBayes</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">reporteBayes</h1>
 <h4 class="author">Flavio Galán, José Prince</h4>
-<h4 class="date">2025-03-12</h4>
+<h4 class="date">2025-03-16</h4>
 
 </div>
 
@@ -369,7 +369,7 @@ de entrenamiento con el 70% de los datos y otro de validación con el 30%
 de los datos.</p>
 <pre><code>## Warning: package &#39;e1071&#39; was built under R version 4.4.3</code></pre>
 <pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
+## Adjuntando el paquete: &#39;dplyr&#39;</code></pre>
 <pre><code>## The following objects are masked from &#39;package:stats&#39;:
 ## 
 ##     filter, lag</code></pre>
@@ -377,8 +377,11 @@ de los datos.</p>
 ## 
 ##     intersect, setdiff, setequal, union</code></pre>
 <pre><code>## Warning: package &#39;caret&#39; was built under R version 4.4.3</code></pre>
-<pre><code>## Loading required package: ggplot2</code></pre>
-<pre><code>## Loading required package: lattice</code></pre>
+<pre><code>## Cargando paquete requerido: ggplot2</code></pre>
+<pre><code>## Cargando paquete requerido: lattice</code></pre>
+<pre><code>## Warning: package &#39;glmnet&#39; was built under R version 4.4.3</code></pre>
+<pre><code>## Cargando paquete requerido: Matrix</code></pre>
+<pre><code>## Loaded glmnet 4.1-8</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -476,6 +479,98 @@ resultados removiendo los puntos atípicos, en donde atípicos significa
 Como se puede ver el <em>Accuracy</em> del modelo tuvo una ligera mejora
 (ascendió a 73%) y la eficiencia del modelo también aumentó levemente
 como se ve por la matriz de confusión.</p>
+<p>Viendo los resultados de la matriz de confusión y las métricas de
+precisión, se puede notar que tiene sobreajuste. Este modelo clasifica
+con una sensibilidad del 96.46% y 82.16% a las casas Baratas y Caras
+respectivamente. Sin embargo, la clasificación de las casas Medias es
+del 39.88%, lo que sugiere que el modelo ha aprendido demasiado los
+patrones de cuertas clases y no generaliza bien.</p>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Barata Media Cara
+##     Barata    139    42    6
+##     Media       5    78   20
+##     Cara        0    24  119
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.776           
+##                  95% CI : (0.7337, 0.8144)
+##     No Information Rate : 0.3349          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.664           
+##                                           
+##  Mcnemar&#39;s Test P-Value : 9.592e-08       
+## 
+## Statistics by Class:
+## 
+##                      Class: Barata Class: Media Class: Cara
+## Sensitivity                 0.9653       0.5417      0.8207
+## Specificity                 0.8339       0.9135      0.9167
+## Pos Pred Value              0.7433       0.7573      0.8322
+## Neg Pred Value              0.9797       0.8000      0.9103
+## Prevalence                  0.3326       0.3326      0.3349
+## Detection Rate              0.3210       0.1801      0.2748
+## Detection Prevalence        0.4319       0.2379      0.3303
+## Balanced Accuracy           0.8996       0.7276      0.8687</code></pre>
+<p>Con este nuevo modelo generado mediante validación cruzada podemos
+ver una mejora en la <em>Accuracy</em> del modelo. Ahora vemos que el
+modelo tiene un porcentaje de accuracy del 77% siendo mayor que los
+modelos anteriores de Naive Bayes.</p>
+<p>Ahora evaluaremos con diferentes hiperparámetros los modelos de
+clasificación y regresión.</p>
+<pre><code>## Warning: package &#39;DMwR2&#39; was built under R version 4.4.3</code></pre>
+<pre><code>## Registered S3 method overwritten by &#39;quantmod&#39;:
+##   method            from
+##   as.zoo.data.frame zoo</code></pre>
+<pre><code>## Warning: predict.naive_bayes(): only 36 feature(s) out of 247 defined in the naive_bayes object &quot;best_model&quot; are used for prediction.</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Barata Media Cara
+##     Barata    142    66    2
+##     Media       2    66   12
+##     Cara        0    12  132
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.7834          
+##                  95% CI : (0.7416, 0.8213)
+##     No Information Rate : 0.3364          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.6751          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 1.957e-13       
+## 
+## Statistics by Class:
+## 
+##                      Class: Barata Class: Media Class: Cara
+## Sensitivity                 0.9861       0.4583      0.9041
+## Specificity                 0.7655       0.9517      0.9583
+## Pos Pred Value              0.6762       0.8250      0.9167
+## Neg Pred Value              0.9911       0.7797      0.9517
+## Prevalence                  0.3318       0.3318      0.3364
+## Detection Rate              0.3272       0.1521      0.3041
+## Detection Prevalence        0.4839       0.1843      0.3318
+## Balanced Accuracy           0.8758       0.7050      0.9312</code></pre>
+<p>El modelo de Naive Bayes no mejoró significativamente debido a varios
+fcatores. La matriz de confusión muestra que el modelo tiene un buen
+desempeño al clasificar casas baratas pero tiene dificultades para las
+“Medias” y “Caras”. Esto se debe al desbalanceo en la distribución de
+clases, favoreciendo las clases más comunes. El desempeño general del
+modelo, con precisión del 63%, está afectado por la suposición de
+independencia de caracterpisticas que Naive Bayes hace, ya que puede
+haber interacciones entre las caracteristicas que el modelo no está
+capturando.</p>
+<p>Viendo el <em>Accuracy</em> del árbol de decisión y el random forest,
+se obtuvo que su accuracy era de 90% y 91%. Esto contrasta con lo
+obtenido con Naive Bayes viendo que su capacidad de predicción es peor
+que la de un random forest. Incluso viendo el tiempo de ejecución, se ve
+que el random forest se tarda menos en procesar, teniendo actualmente
+una diferencia de procesamiento de 5s aproximadamente.</p>
 </div>
 
 

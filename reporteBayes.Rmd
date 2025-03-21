@@ -29,6 +29,7 @@ Primero vamos a dividir el dataset the entrenamiento en 2 grupos, uno de entrena
 library(e1071)  # For Naïve Bayes
 library(dplyr)
 library(caret)  # For data splitting
+library(glmnet)
 
 load_data()
 
@@ -112,3 +113,55 @@ print(conf_matrix)
 ```
 
 Después de probar varias iteraciones se obtuvo la mejor cantidad de resultados removiendo los puntos atípicos, en donde atípicos significa "Tienen un precio mayor a la media + 4 veces la desviación estándar". Como se puede ver el _Accuracy_ del modelo tuvo una ligera mejora (ascendió a 73%) y la eficiencia del modelo también aumentó levemente como se ve por la matriz de confusión.
+
+Viendo los resultados de la matriz de confusión y las métricas de precisión, se puede notar que tiene sobreajuste. Este modelo clasifica con una sensibilidad del 96.46% y 82.16% a las casas Baratas y Caras respectivamente. Sin embargo, la clasificación de las casas Medias es del 39.88%, lo que sugiere que el modelo ha aprendido demasiado los patrones de cuertas clases y no generaliza bien. 
+
+```{r NV Cross Validation}
+# 
+tu_datos <- df %>% mutate_if(is.character, as.factor)
+X <- tu_datos[, -which(names(tu_datos) == "SalePriceCategory")]
+y <- tu_datos$SalePriceCategory
+
+train_control <- trainControl(method = "cv", number = 10)
+modelo_nb_cv <- suppressWarnings(train(x = X, y = y, method = "naive_bayes", trControl = train_control))
+
+predicciones <- suppressWarnings(predict(modelo_nb_cv, newdata = test_data))
+suppressWarnings(confusionMatrix(predicciones, test_data$SalePriceCategory))
+```
+
+Con este nuevo modelo generado mediante validación cruzada podemos ver una mejora en la _Accuracy_ del modelo. Ahora vemos que el modelo tiene un porcentaje de accuracy del 77% siendo mayor que los modelos anteriores de Naive Bayes.
+
+Ahora evaluaremos con diferentes hiperparámetros los modelos de clasificación y regresión.
+
+```{r Hiperparámetros}
+
+library(DMwR2)  # Para la imputación de valores faltantes
+
+filtered_training_data <- centralImputation(filtered_training_data)
+# Definir la cuadrícula de hiperparámetros para el ajuste
+tune_grid <- expand.grid(laplace = c(0, 0.5, 1, 2),
+                        usekernel = c(TRUE, FALSE),
+                        adjust = c(1, 1.5, 2))
+
+# Aplicar ajuste de hiperparámetros usando el método de validación cruzada
+train_control <- trainControl(method = "cv", number = 10)
+
+# Ajuste del modelo de Naive Bayes
+modelo_nb_tune <- train(SalePriceCategory ~ ., data = filtered_training_data, 
+                        method = "naive_bayes", 
+                        trControl = train_control, 
+                        tuneGrid = tune_grid)
+
+# Usar el mejor modelo del ajuste para hacer predicciones
+best_model <- modelo_nb_tune$finalModel
+predictions <- predict(best_model, newdata = test_data)
+
+# Evaluar el rendimiento del modelo ajustado
+conf_matrix <- confusionMatrix(predictions, test_data$SalePriceCategory)
+print(conf_matrix)
+
+```
+
+El modelo de Naive Bayes no mejoró significativamente debido a varios fcatores. La matriz de confusión muestra que el modelo tiene un buen desempeño al clasificar casas baratas pero tiene dificultades para las "Medias" y "Caras". Esto se debe al desbalanceo en la distribución de clases, favoreciendo las clases más comunes. El desempeño general del modelo, con precisión del 63%, está afectado por la suposición de independencia de caracterpisticas que Naive Bayes hace, ya que puede haber interacciones entre las caracteristicas que el modelo no está capturando.
+
+Viendo el _Accuracy_ del árbol de decisión y el random forest, se obtuvo que su accuracy era de 90% y 91%. Esto contrasta con lo obtenido con Naive Bayes viendo que su capacidad de predicción es peor que la de un random forest. Incluso viendo el tiempo de ejecución, se ve que el random forest se tarda menos en procesar, teniendo actualmente una diferencia de procesamiento de 5s aproximadamente.
