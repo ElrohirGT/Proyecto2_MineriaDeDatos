@@ -164,3 +164,88 @@ print(conf_matrix)
 ```
 
 El análisis de la matriz de confusión muestra que el modelo tiene un alto accuracy (94.74%), lo que indica que, en general, el clasificador está funcionando bien, pero presenta una fuerte desbalance entre las clases. Para la clase "Barata", la sensibilidad es 0, lo que significa que el modelo no ha identificado ninguna casa como "Barata". Esto es un indicio de que hay muy pocos ejemplos de esta clase en los datos y el modelo no logra capturarlos correctamente. En cuanto a la clase "Cara", la sensibilidad es bastante baja (0.44), pero tiene un valor perfecto en la especificidad (1), lo que sugiere que cuando el modelo predice "Cara", es casi siempre correcta. Para la clase "Mediana", el modelo muestra una excelente sensibilidad (1), lo que significa que identifica correctamente casi todas las casas medianas. Sin embargo, su especificidad es baja (0.39), lo que indica que las casas que no son medianas tienden a ser clasificadas erróneamente como medianas.
+
+No consideramos que el modelo esté sobreajustado principalmente porque hay dos clases enteras en las cuales su especificidad es muy baja, lo que significa que hay varios valores que todavía clasifica erróneamente, si el modelo estuviera sobreajustado, esto no ocurriría.
+
+
+# Entrenamiento usando validación cruzada
+```{r}
+# Cargar librerías necesarias
+library(caret)
+
+# Definir control de validación cruzada (10-fold)
+train_control <- trainControl(method = "cv", number = 10)
+
+# Definir número óptimo de vecinos con búsqueda en grid
+k_values <- round(sqrt(nrow(train_data)), 0)
+
+# Entrenar modelo KNN con validación cruzada
+knn_model <- train(SalePriceCategory ~ ., 
+                   data = cbind(train_data_numeric, SalePriceCategory = train_labels), 
+                   method = "knn", 
+                   trControl = train_control,
+                   tuneGrid = expand.grid(k = k_values))
+
+# Ver resultados del modelo
+print(knn_model)
+
+# Hacer predicciones en test_data
+test_predictions <- predict(knn_model, newdata = test_data_numeric)
+
+# Evaluar el rendimiento del modelo
+conf_matrix <- confusionMatrix(test_predictions, test_labels)
+print(conf_matrix)
+```
+
+En nuestro caso, ya sea que lo entrenáramos de forma cruzada o no, realmente no hizo una diferencia significativa en los resultados, ambos modelos tienen matrices de confusión prácticamente idénticas.
+
+# Tuneo de los modelos
+
+En el KNN el único hiperparámetro que podemos modificar es justamente la K, es decir, cuántos vecinos vamos a tomar en cuenta.
+```{r}
+
+models <- function(k_value) {
+  # Cargar librerías necesarias
+library(caret)
+
+# Definir control de validación cruzada (10-fold)
+train_control <- trainControl(method = "cv", number = 10)
+
+# Definir número óptimo de vecinos con búsqueda en grid
+k_values <- round(sqrt(nrow(train_data)), 0)
+
+# Entrenar modelo KNN con validación cruzada
+knn_model <- train(SalePriceCategory ~ ., 
+                   data = cbind(train_data_numeric, SalePriceCategory = train_labels), 
+                   method = "knn", 
+                   trControl = train_control,
+                   tuneGrid = expand.grid(k = k_value))
+
+print(paste("Modelo con K=", k_value))
+
+# Ver resultados del modelo
+print(knn_model)
+
+# Hacer predicciones en test_data
+test_predictions <- predict(knn_model, newdata = test_data_numeric)
+
+# Evaluar el rendimiento del modelo
+conf_matrix <- confusionMatrix(test_predictions, test_labels)
+print(conf_matrix)
+}
+
+
+models(1)
+models(10)
+models(20)
+models(round(sqrt(nrow(train_data)), 0))
+models(40)
+```
+
+De los modelos explorados, el que mejor matriz de confusión sigue teniendo fue el que utilizamos anteriormente, K=32 parece ser justamente el mejor sweet spot, la lógica utilizada fue obtener la raíz cuadrada de la cantidad de filas.
+
+# Conclusiones Finales
+
+Comparando el modelo obtenido con KNN con respecto a los anteriores se ve un claro aumento en precisión, nuestro modelo KNN tuvo la mayor precisión con 94% seguido de los árboles de decisión en 91% y 90% y por último el naive bayes que resultó ser el peor con un 78%. Incluso en tiempos de procesamiento, el naive bayes ha sido el que más se ha tardado hasta ahora, posiblemente por nuestra implementación en R, talvez no usamos las librerías correctas, pero se tardó 5s más en promedio.
+
+Debido a todo lo anterior, nuestra recomendación final es utilizar el modelo de KNN generado con K=32, esta configuración nos ha brindado los mejores resultados combinado también con una performance de entrenamiento decente.

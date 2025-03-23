@@ -11,7 +11,7 @@
 
 <meta name="author" content="Flavio Galán, José Prince" />
 
-<meta name="date" content="2025-03-20" />
+<meta name="date" content="2025-03-23" />
 
 <title>ReporteArboles</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">ReporteArboles</h1>
 <h4 class="author">Flavio Galán, José Prince</h4>
-<h4 class="date">2025-03-20</h4>
+<h4 class="date">2025-03-23</h4>
 
 </div>
 
@@ -550,6 +550,376 @@ muestra una excelente sensibilidad (1), lo que significa que identifica
 correctamente casi todas las casas medianas. Sin embargo, su
 especificidad es baja (0.39), lo que indica que las casas que no son
 medianas tienden a ser clasificadas erróneamente como medianas.</p>
+<p>No consideramos que el modelo esté sobreajustado principalmente
+porque hay dos clases enteras en las cuales su especificidad es muy
+baja, lo que significa que hay varios valores que todavía clasifica
+erróneamente, si el modelo estuviera sobreajustado, esto no
+ocurriría.</p>
+</div>
+<div id="entrenamiento-usando-validación-cruzada" class="section level1">
+<h1>Entrenamiento usando validación cruzada</h1>
+<pre class="r"><code># Cargar librerías necesarias
+library(caret)
+
+# Definir control de validación cruzada (10-fold)
+train_control &lt;- trainControl(method = &quot;cv&quot;, number = 10)
+
+# Definir número óptimo de vecinos con búsqueda en grid
+k_values &lt;- round(sqrt(nrow(train_data)), 0)
+
+# Entrenar modelo KNN con validación cruzada
+knn_model &lt;- train(SalePriceCategory ~ ., 
+                   data = cbind(train_data_numeric, SalePriceCategory = train_labels), 
+                   method = &quot;knn&quot;, 
+                   trControl = train_control,
+                   tuneGrid = expand.grid(k = k_values))
+
+# Ver resultados del modelo
+print(knn_model)</code></pre>
+<pre><code>## k-Nearest Neighbors 
+## 
+## 1023 samples
+##   37 predictor
+##    3 classes: &#39;Barata&#39;, &#39;Cara&#39;, &#39;Mediana&#39; 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold) 
+## Summary of sample sizes: 920, 921, 921, 920, 921, 921, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.9257377  0.2960633
+## 
+## Tuning parameter &#39;k&#39; was held constant at a value of 32</code></pre>
+<pre class="r"><code># Hacer predicciones en test_data
+test_predictions &lt;- predict(knn_model, newdata = test_data_numeric)
+
+# Evaluar el rendimiento del modelo
+conf_matrix &lt;- confusionMatrix(test_predictions, test_labels)
+print(conf_matrix)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Barata Cara Mediana
+##    Barata       0    0       0
+##    Cara         0   15       0
+##    Mediana      4   19     399
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9474          
+##                  95% CI : (0.9221, 0.9663)
+##     No Information Rate : 0.913           
+##     P-Value [Acc &gt; NIR] : 0.004562        
+##                                           
+##                   Kappa : 0.5448          
+##                                           
+##  Mcnemar&#39;s Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: Barata Class: Cara Class: Mediana
+## Sensitivity               0.000000     0.44118         1.0000
+## Specificity               1.000000     1.00000         0.3947
+## Pos Pred Value                 NaN     1.00000         0.9455
+## Neg Pred Value            0.990847     0.95498         1.0000
+## Prevalence                0.009153     0.07780         0.9130
+## Detection Rate            0.000000     0.03432         0.9130
+## Detection Prevalence      0.000000     0.03432         0.9657
+## Balanced Accuracy         0.500000     0.72059         0.6974</code></pre>
+<p>En nuestro caso, ya sea que lo entrenáramos de forma cruzada o no,
+realmente no hizo una diferencia significativa en los resultados, ambos
+modelos tienen matrices de confusión prácticamente idénticas.</p>
+</div>
+<div id="tuneo-de-los-modelos" class="section level1">
+<h1>Tuneo de los modelos</h1>
+<p>En el KNN el único hiperparámetro que podemos modificar es justamente
+la K, es decir, cuántos vecinos vamos a tomar en cuenta.</p>
+<pre class="r"><code>models &lt;- function(k_value) {
+  # Cargar librerías necesarias
+library(caret)
+
+# Definir control de validación cruzada (10-fold)
+train_control &lt;- trainControl(method = &quot;cv&quot;, number = 10)
+
+# Definir número óptimo de vecinos con búsqueda en grid
+k_values &lt;- round(sqrt(nrow(train_data)), 0)
+
+# Entrenar modelo KNN con validación cruzada
+knn_model &lt;- train(SalePriceCategory ~ ., 
+                   data = cbind(train_data_numeric, SalePriceCategory = train_labels), 
+                   method = &quot;knn&quot;, 
+                   trControl = train_control,
+                   tuneGrid = expand.grid(k = k_value))
+
+print(paste(&quot;Modelo con K=&quot;, k_value))
+
+# Ver resultados del modelo
+print(knn_model)
+
+# Hacer predicciones en test_data
+test_predictions &lt;- predict(knn_model, newdata = test_data_numeric)
+
+# Evaluar el rendimiento del modelo
+conf_matrix &lt;- confusionMatrix(test_predictions, test_labels)
+print(conf_matrix)
+}
+
+
+models(1)</code></pre>
+<pre><code>## [1] &quot;Modelo con K= 1&quot;
+## k-Nearest Neighbors 
+## 
+## 1023 samples
+##   37 predictor
+##    3 classes: &#39;Barata&#39;, &#39;Cara&#39;, &#39;Mediana&#39; 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold) 
+## Summary of sample sizes: 921, 920, 921, 921, 920, 921, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.9306111  0.5243694
+## 
+## Tuning parameter &#39;k&#39; was held constant at a value of 1
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Barata Cara Mediana
+##    Barata       0    0       2
+##    Cara         0   24       8
+##    Mediana      4   10     389
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9451          
+##                  95% CI : (0.9194, 0.9645)
+##     No Information Rate : 0.913           
+##     P-Value [Acc &gt; NIR] : 0.007917        
+##                                           
+##                   Kappa : 0.6393          
+##                                           
+##  Mcnemar&#39;s Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: Barata Class: Cara Class: Mediana
+## Sensitivity               0.000000     0.70588         0.9749
+## Specificity               0.995381     0.98015         0.6316
+## Pos Pred Value            0.000000     0.75000         0.9653
+## Neg Pred Value            0.990805     0.97531         0.7059
+## Prevalence                0.009153     0.07780         0.9130
+## Detection Rate            0.000000     0.05492         0.8902
+## Detection Prevalence      0.004577     0.07323         0.9222
+## Balanced Accuracy         0.497691     0.84302         0.8033</code></pre>
+<pre class="r"><code>models(10)</code></pre>
+<pre><code>## [1] &quot;Modelo con K= 10&quot;
+## k-Nearest Neighbors 
+## 
+## 1023 samples
+##   37 predictor
+##    3 classes: &#39;Barata&#39;, &#39;Cara&#39;, &#39;Mediana&#39; 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold) 
+## Summary of sample sizes: 920, 920, 921, 920, 921, 921, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.9335427  0.4675495
+## 
+## Tuning parameter &#39;k&#39; was held constant at a value of 10
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Barata Cara Mediana
+##    Barata       0    0       0
+##    Cara         0   20       4
+##    Mediana      4   14     395
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9497          
+##                  95% CI : (0.9248, 0.9682)
+##     No Information Rate : 0.913           
+##     P-Value [Acc &gt; NIR] : 0.00252         
+##                                           
+##                   Kappa : 0.621           
+##                                           
+##  Mcnemar&#39;s Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: Barata Class: Cara Class: Mediana
+## Sensitivity               0.000000     0.58824         0.9900
+## Specificity               1.000000     0.99007         0.5263
+## Pos Pred Value                 NaN     0.83333         0.9564
+## Neg Pred Value            0.990847     0.96610         0.8333
+## Prevalence                0.009153     0.07780         0.9130
+## Detection Rate            0.000000     0.04577         0.9039
+## Detection Prevalence      0.000000     0.05492         0.9451
+## Balanced Accuracy         0.500000     0.78915         0.7581</code></pre>
+<pre class="r"><code>models(20)</code></pre>
+<pre><code>## [1] &quot;Modelo con K= 20&quot;
+## k-Nearest Neighbors 
+## 
+## 1023 samples
+##   37 predictor
+##    3 classes: &#39;Barata&#39;, &#39;Cara&#39;, &#39;Mediana&#39; 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold) 
+## Summary of sample sizes: 921, 921, 921, 921, 920, 920, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.9306206  0.3975477
+## 
+## Tuning parameter &#39;k&#39; was held constant at a value of 20
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Barata Cara Mediana
+##    Barata       0    0       0
+##    Cara         0   16       1
+##    Mediana      4   18     398
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9474          
+##                  95% CI : (0.9221, 0.9663)
+##     No Information Rate : 0.913           
+##     P-Value [Acc &gt; NIR] : 0.004562        
+##                                           
+##                   Kappa : 0.5594          
+##                                           
+##  Mcnemar&#39;s Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: Barata Class: Cara Class: Mediana
+## Sensitivity               0.000000     0.47059         0.9975
+## Specificity               1.000000     0.99752         0.4211
+## Pos Pred Value                 NaN     0.94118         0.9476
+## Neg Pred Value            0.990847     0.95714         0.9412
+## Prevalence                0.009153     0.07780         0.9130
+## Detection Rate            0.000000     0.03661         0.9108
+## Detection Prevalence      0.000000     0.03890         0.9611
+## Balanced Accuracy         0.500000     0.73405         0.7093</code></pre>
+<pre class="r"><code>models(round(sqrt(nrow(train_data)), 0))</code></pre>
+<pre><code>## [1] &quot;Modelo con K= 32&quot;
+## k-Nearest Neighbors 
+## 
+## 1023 samples
+##   37 predictor
+##    3 classes: &#39;Barata&#39;, &#39;Cara&#39;, &#39;Mediana&#39; 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold) 
+## Summary of sample sizes: 920, 921, 921, 921, 921, 920, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa   
+##   0.9227679  0.250311
+## 
+## Tuning parameter &#39;k&#39; was held constant at a value of 32
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Barata Cara Mediana
+##    Barata       0    0       0
+##    Cara         0   15       0
+##    Mediana      4   19     399
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9474          
+##                  95% CI : (0.9221, 0.9663)
+##     No Information Rate : 0.913           
+##     P-Value [Acc &gt; NIR] : 0.004562        
+##                                           
+##                   Kappa : 0.5448          
+##                                           
+##  Mcnemar&#39;s Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: Barata Class: Cara Class: Mediana
+## Sensitivity               0.000000     0.44118         1.0000
+## Specificity               1.000000     1.00000         0.3947
+## Pos Pred Value                 NaN     1.00000         0.9455
+## Neg Pred Value            0.990847     0.95498         1.0000
+## Prevalence                0.009153     0.07780         0.9130
+## Detection Rate            0.000000     0.03432         0.9130
+## Detection Prevalence      0.000000     0.03432         0.9657
+## Balanced Accuracy         0.500000     0.72059         0.6974</code></pre>
+<pre class="r"><code>models(40)</code></pre>
+<pre><code>## [1] &quot;Modelo con K= 40&quot;
+## k-Nearest Neighbors 
+## 
+## 1023 samples
+##   37 predictor
+##    3 classes: &#39;Barata&#39;, &#39;Cara&#39;, &#39;Mediana&#39; 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (10 fold) 
+## Summary of sample sizes: 921, 921, 921, 920, 921, 921, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.9237769  0.2608522
+## 
+## Tuning parameter &#39;k&#39; was held constant at a value of 40
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Barata Cara Mediana
+##    Barata       0    0       0
+##    Cara         0   13       0
+##    Mediana      4   21     399
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9428          
+##                  95% CI : (0.9167, 0.9626)
+##     No Information Rate : 0.913           
+##     P-Value [Acc &gt; NIR] : 0.0132          
+##                                           
+##                   Kappa : 0.4883          
+##                                           
+##  Mcnemar&#39;s Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: Barata Class: Cara Class: Mediana
+## Sensitivity               0.000000     0.38235         1.0000
+## Specificity               1.000000     1.00000         0.3421
+## Pos Pred Value                 NaN     1.00000         0.9410
+## Neg Pred Value            0.990847     0.95047         1.0000
+## Prevalence                0.009153     0.07780         0.9130
+## Detection Rate            0.000000     0.02975         0.9130
+## Detection Prevalence      0.000000     0.02975         0.9703
+## Balanced Accuracy         0.500000     0.69118         0.6711</code></pre>
+<p>De los modelos explorados, el que mejor matriz de confusión sigue
+teniendo fue el que utilizamos anteriormente, K=32 parece ser justamente
+el mejor sweet spot, la lógica utilizada fue obtener la raíz cuadrada de
+la cantidad de filas.</p>
+</div>
+<div id="conclusiones-finales" class="section level1">
+<h1>Conclusiones Finales</h1>
+<p>Comparando el modelo obtenido con KNN con respecto a los anteriores
+se ve un claro aumento en precisión, nuestro modelo KNN tuvo la mayor
+precisión con 94% seguido de los árboles de decisión en 91% y 90% y por
+último el naive bayes que resultó ser el peor con un 78%. Incluso en
+tiempos de procesamiento, el naive bayes ha sido el que más se ha
+tardado hasta ahora, posiblemente por nuestra implementación en R,
+talvez no usamos las librerías correctas, pero se tardó 5s más en
+promedio.</p>
+<p>Debido a todo lo anterior, nuestra recomendación final es utilizar el
+modelo de KNN generado con K=32, esta configuración nos ha brindado los
+mejores resultados combinado también con una performance de
+entrenamiento decente.</p>
 </div>
 
 
