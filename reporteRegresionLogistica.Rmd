@@ -1,0 +1,250 @@
+---
+title: "ReporteArboles"
+author: "Flavio Galán, José Prince"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+Link del repositorio: https://github.com/ElrohirGT/Proyecto2_MineriaDeDatos
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(class)
+library(caret)
+library(dplyr)
+library(Metrics)
+randomSeed <- 123
+
+normalize <- function(x) { (x - min(x)) / (max(x) - min(x)) }
+
+# Cargar datos
+training_data <- read.csv("data/train.csv")
+
+# Reemplazar valores NA con 0
+training_data[is.na(training_data)] <- 0
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir los límites
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+
+# Crear la variable de clasificación
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                           ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+training_data <- training_data %>%
+  mutate(
+    EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
+    EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
+    EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
+  )
+training_data$Category <- as.factor(training_data$Category)
+
+
+predictors <- training_data %>% select(-Category)
+response <- training_data$Category
+
+# Normalización (Estandarización Z-score)
+preProc <- preProcess(predictors, method = c("center", "scale"))
+predictors_scaled <- predict(preProc, predictors)
+
+# Semilla para reproducibilidad
+set.seed(randomSeed) 
+
+# Separar datos en entrenamiento (70%) y verificación (30%)
+train_indices <- createDataPartition(response, p = 0.7, list = FALSE)
+
+train_data <- predictors_scaled[train_indices, ]
+test_data <- predictors_scaled[-train_indices, ]
+
+summary(train_data)
+```
+
+# Modelo de Regresión Logística
+
+Debido a que ya tenemos los datos por las entregas anteriores procedemos a elaborar un modelo de regresión logística para la variable "EsCara" utilizando validación cruzada.
+
+```{r Modelo de Regresión Logística}
+# install.packages("caret")
+# install.packages("e1071")  # requerido por caret para modelos SVM y otros
+
+library(caret)
+library(e1071)
+
+set.seed(randomSeed)  # Para reproducibilidad
+
+control <- trainControl(method = "cv",    # cross-validation
+                        number = 10,      # número de folds
+                        classProbs = TRUE,  # para clasificación
+                        summaryFunction = twoClassSummary)  # para métricas como ROC
+
+# Puedes cambiar a Accuracy, Sensitivity, etc.
+#modeloBarata <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+#modeloMediana <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+modeloCara <- train(EsCara ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+                   data = train_data,
+                   method = "glm",
+                   family = "binomial",
+                   trControl = control,
+                   metric = "Accuracy")
+
+#print("Modelo de EsBarata")
+#print(modeloBarata)
+
+#print("Modelo de EsMediana")
+#print(modeloMediana)
+
+print("Modelo de EsCara")
+summary(modeloCara)
+```
+
+Analizando los coeficientes podemos ver que varias de las variables utilizadas tienen un p-value menor a 0.05, pero no son todas, LotArea y YearBuilt tienen un p value demasiado elevado, lo que me lleva a pensar que realmente no necesariamente se correlacionan con el precio de la vivienda.
+
+Utilizando el modelo con el conjunto de verificación podemos ver que:
+```{r Validación del Modelo}
+predicciones <- predict(modeloCara, newdata = test_data)
+
+# Convertir a clases (0 o 1) usando un umbral (por ejemplo, 0.5)
+# predicciones <- ifelse(probabilidades > 0.5, 1, 0)
+confusionMatrix(as.factor(predicciones), as.factor(test_data$EsCara))
+
+```
+
+Viendo los resultados del modelo, podemos ver que aunque el "Accuracy" es muy alto, realmente el modelo es medio malo, ya que nuestro Balanced Accuracy apenas llega a 77%, esto se debe a que realmente la cantidad de casas que cumplen nuestra definición de "cara" es extremadamente alta (2 desviaciónes estándar por encima de la media). Por lo tanto tenemos que balancear la muestra para que el modelo pueda aprender características sobre este conjunto de datos reducido.
+
+```{r Modelo modificado}
+
+# install.packages("ROSE")
+library(ROSE)
+
+# Cargar datos
+training_data <- read.csv("data/train.csv")
+
+# Reemplazar valores NA con 0
+training_data[is.na(training_data)] <- 0
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir los límites
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+
+# Crear la variable de clasificación
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                           ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+training_data <- training_data %>%
+  mutate(
+    EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
+    EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
+    EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
+  )
+training_data$Category <- as.factor(training_data$Category)
+balanced_data <- ROSE(EsCara ~   OverallQual  + GarageCars + GrLivArea + Category, data = training_data)$data
+
+predictors <- balanced_data %>% select(-Category)
+response <- balanced_data$Category
+
+# Normalización (Estandarización Z-score)
+preProc <- preProcess(predictors, method = c("center", "scale"))
+predictors_scaled <- predict(preProc, predictors)
+
+# Semilla para reproducibilidad
+set.seed(randomSeed) 
+
+# Separar datos en entrenamiento (70%) y verificación (30%)
+train_indices <- createDataPartition(response, p = 0.7, list = FALSE)
+
+train_data <- predictors_scaled[train_indices, ]
+test_data <- predictors_scaled[-train_indices, ]
+
+library(caret)
+library(e1071)
+
+set.seed(randomSeed)  # Para reproducibilidad
+
+control <- trainControl(method = "cv",    # cross-validation
+                        number = 10,      # número de folds
+                        classProbs = TRUE,  # para clasificación
+                        summaryFunction = twoClassSummary)  # para métricas como ROC
+
+# Puedes cambiar a Accuracy, Sensitivity, etc.
+#modeloBarata <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+#modeloMediana <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+modeloMejoradoCara <- train(EsCara ~ OverallQual  + GarageCars + GrLivArea,
+                   data = train_data,
+                   method = "glm",
+                   family = "binomial",
+                   trControl = control,
+                   metric = "Precision-Recall AUC")
+
+#print("Modelo de EsBarata")
+#print(modeloBarata)
+
+#print("Modelo de EsMediana")
+#print(modeloMediana)
+
+print("Modelo de EsCara")
+
+predicciones <- predict(modeloMejoradoCara, newdata = test_data)
+
+# Convertir a clases (0 o 1) usando un umbral (por ejemplo, 0.5)
+# predicciones <- ifelse(probabilidades > 0.5, 1, 0)
+confusionMatrix(as.factor(predicciones), as.factor(test_data$EsCara))
+```
+
+Podemos ver que este modelo se comporta de una manera mucho mejor al anterior! Aunque el accuracy normal disminuyó considerablemente el accuracy balanceado aumentó a 92%! Esto se debe principalmente a que nuestro modelo ya es capaz de identificar muchas más casas que sí son consideradas caras, pueso que las incluimos más seguido dentro del dataset.
+
+## Análisis de Overfitting/Underfitting
+
+Para analizar el overfitting/underfitting del modelo necesitamos evaluarlo con los datos de entrenamiento y comparar sus resultados con respecto a los datos de verificación!
+
+```{r Análisis de Overfitting}
+print("Usando data de entrenamiento")
+predicciones <- predict(modeloMejoradoCara, newdata = train_data)
+
+# Convertir a clases (0 o 1) usando un umbral (por ejemplo, 0.5)
+# predicciones <- ifelse(probabilidades > 0.5, 1, 0)
+# confusionMatrix(as.factor(predicciones), as.factor(train_data$EsCara))
+
+
+curva <- learning_curve_dat(dat = train_data,
+                            outcome = "EsCara",
+                            proportion = seq(0.1, 1.0, by = 0.1),
+                            test_prop = 0.3,
+                            method = "glm",
+                            metric = "Accuracy",
+                            family = "binomial")
+
+# Graficar la curva de aprendizaje
+ggplot(curva, aes(x = Training_Size, y = Accuracy, color = Data)) +
+  geom_smooth(se = FALSE) +
+  labs(title = "Curva de Aprendizaje - Regresión Logística",
+       y = "Accuracy", x = "Tamaño del conjunto de entrenamiento")
+```
+
+Como podemos ver, las curvas tanto de validación como de entrenamiento se siguen muy cercanamente en los rangos cercanos a 300 datos y de 500 en adelante. En el final, aunque no convergen se puede ver que sí se encuentran muy cercanos entre sí por lo tanto no hay Overfitting. Tampoco creemos que haya underfitting, puesto que aunque sí están juntas la mayoría del tiempo, el valor de accuracy es demasiado alto (mayor a 94%). Por lo que consideramos que el modelo realmente sí aprendió de forma correcta luego de aplicarle un resampling a los datos de entrada para que no tuviera despreciara minorías.
