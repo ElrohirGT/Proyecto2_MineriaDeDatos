@@ -224,6 +224,8 @@ Podemos ver que este modelo se comporta de una manera mucho mejor al anterior! A
 Para analizar el overfitting/underfitting del modelo necesitamos evaluarlo con los datos de entrenamiento y comparar sus resultados con respecto a los datos de verificación!
 
 ```{r Análisis de Overfitting}
+library(plotly)
+
 print("Usando data de entrenamiento")
 predicciones <- predict(modeloMejoradoCara, newdata = train_data)
 
@@ -241,10 +243,12 @@ curva <- learning_curve_dat(dat = train_data,
                             family = "binomial")
 
 # Graficar la curva de aprendizaje
-ggplot(curva, aes(x = Training_Size, y = Accuracy, color = Data)) +
+ggplotly(
+  ggplot(curva, aes(x = Training_Size, y = Accuracy, color = Data)) +
   geom_smooth(se = FALSE) +
   labs(title = "Curva de Aprendizaje - Regresión Logística",
        y = "Accuracy", x = "Tamaño del conjunto de entrenamiento")
+)
 ```
 
 Como podemos ver, las curvas tanto de validación como de entrenamiento se siguen muy cercanamente en los rangos cercanos a 300 datos y de 500 en adelante. En el final, aunque no convergen se puede ver que sí se encuentran muy cercanos entre sí por lo tanto no hay Overfitting. Tampoco creemos que haya underfitting, puesto que aunque sí están juntas la mayoría del tiempo, el valor de accuracy es demasiado alto (mayor a 94%). Por lo que consideramos que el modelo realmente sí aprendió de forma correcta luego de aplicarle un resampling a los datos de entrada para que no tuviera despreciara minorías.
