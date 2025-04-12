@@ -217,11 +217,11 @@ predicciones <- predict(modeloMejoradoCara, newdata = test_data)
 confusionMatrix(as.factor(predicciones), as.factor(test_data$EsCara))
 ```
 
-Podemos ver que este modelo se comporta de una manera mucho mejor al anterior! Aunque el accuracy normal disminuyó considerablemente el accuracy balanceado aumentó a 92%! Esto se debe principalmente a que nuestro modelo ya es capaz de identificar muchas más casas que sí son consideradas caras, pueso que las incluimos más seguido dentro del dataset.
+¡Podemos ver que este modelo se comporta de una manera mucho mejor al anterior! Aunque el accuracy normal disminuyó considerablemente el accuracy balanceado aumentó a 92%! Esto se debe principalmente a que nuestro modelo ya es capaz de identificar muchas más casas que sí son consideradas caras, pueso que las incluimos más seguido dentro del dataset.
 
 ## Análisis de Overfitting/Underfitting
 
-Para analizar el overfitting/underfitting del modelo necesitamos evaluarlo con los datos de entrenamiento y comparar sus resultados con respecto a los datos de verificación!
+¡Para analizar el overfitting/underfitting del modelo necesitamos evaluarlo con los datos de entrenamiento y comparar sus resultados con respecto a los datos de verificación!
 
 ```{r Análisis de Overfitting}
 library(plotly)
@@ -252,3 +252,10 @@ ggplotly(
 ```
 
 Como podemos ver, las curvas tanto de validación como de entrenamiento se siguen muy cercanamente en los rangos cercanos a 300 datos y de 500 en adelante. En el final, aunque no convergen se puede ver que sí se encuentran muy cercanos entre sí por lo tanto no hay Overfitting. Tampoco creemos que haya underfitting, puesto que aunque sí están juntas la mayoría del tiempo, el valor de accuracy es demasiado alto (mayor a 94%). Por lo que consideramos que el modelo realmente sí aprendió de forma correcta luego de aplicarle un resampling a los datos de entrada para que no tuviera despreciara minorías.
+
+## Data tunning
+
+En la implementación actual del modelo de regresión logística utilizando el método "glm" dentro de la función **train** de la librería **caret**, no se puede realizar ajustes automáticos de hiperparámetros. Esto se debe a que la función **glm** en R, implementa la regresión logísitca estándar, no posee hiperparámetros intrínsecos que puedan ser optimizados. 
+
+En este caso el único "tunning" que se podría hacer es volver a realizar la ingeniería de caractrísticas y cambiar la selección de las variables predictoras pero esto involucraría cambiar el resto de los modelos que se hicieron en entregas anteriores por lo que no se procedera con este método y se dejara el tunning estandar que ofrece el modelo.
+
