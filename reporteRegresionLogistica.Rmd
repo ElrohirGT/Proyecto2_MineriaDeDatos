@@ -14,6 +14,7 @@ library(class)
 library(caret)
 library(dplyr)
 library(Metrics)
+library(profvis)
 randomSeed <- 123
 
 normalize <- function(x) { (x - min(x)) / (max(x) - min(x)) }
@@ -253,9 +254,195 @@ ggplotly(
 
 Como podemos ver, las curvas tanto de validación como de entrenamiento se siguen muy cercanamente en los rangos cercanos a 300 datos y de 500 en adelante. En el final, aunque no convergen se puede ver que sí se encuentran muy cercanos entre sí por lo tanto no hay Overfitting. Tampoco creemos que haya underfitting, puesto que aunque sí están juntas la mayoría del tiempo, el valor de accuracy es demasiado alto (mayor a 94%). Por lo que consideramos que el modelo realmente sí aprendió de forma correcta luego de aplicarle un resampling a los datos de entrada para que no tuviera despreciara minorías.
 
-## Data tunning
+## Eficiencia del modelo
 
-En la implementación actual del modelo de regresión logística utilizando el método "glm" dentro de la función **train** de la librería **caret**, no se puede realizar ajustes automáticos de hiperparámetros. Esto se debe a que la función **glm** en R, implementa la regresión logísitca estándar, no posee hiperparámetros intrínsecos que puedan ser optimizados. 
+Es importante determinar como podemos mejorar nuestro modelo y esto se puede hacer modificando los hiperparametros usados. En la implementación actual del modelo de regresión logística utilizando el método "glm" dentro de la función **train** de la librería **caret**, no se puede realizar ajustes automáticos de hiperparámetros. Esto se debe a que la función **glm** en R, implementa la regresión logísitca estándar, no posee hiperparámetros intrínsecos que puedan ser optimizados. 
 
 En este caso el único "tunning" que se podría hacer es volver a realizar la ingeniería de caractrísticas y cambiar la selección de las variables predictoras pero esto involucraría cambiar el resto de los modelos que se hicieron en entregas anteriores por lo que no se procedera con este método y se dejara el tunning estandar que ofrece el modelo.
+
+```{r model eficiency}
+# install.packages("ROSE")
+library(ROSE)
+
+# Cargar datos
+training_data <- read.csv("data/train.csv")
+
+# Reemplazar valores NA con 0
+training_data[is.na(training_data)] <- 0
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir los límites
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+
+# Crear la variable de clasificación
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                           ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+training_data <- training_data %>%
+  mutate(
+    EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
+    EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
+    EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
+  )
+training_data$Category <- as.factor(training_data$Category)
+balanced_data <- ROSE(EsCara ~   OverallQual  + GarageCars + GrLivArea + Category, data = training_data)$data
+
+predictors <- balanced_data %>% select(-Category)
+response <- balanced_data$Category
+
+# Normalización (Estandarización Z-score)
+preProc <- preProcess(predictors, method = c("center", "scale"))
+predictors_scaled <- predict(preProc, predictors)
+
+# Semilla para reproducibilidad
+set.seed(randomSeed) 
+
+# Separar datos en entrenamiento (70%) y verificación (30%)
+train_indices <- createDataPartition(response, p = 0.7, list = FALSE)
+
+train_data <- predictors_scaled[train_indices, ]
+test_data <- predictors_scaled[-train_indices, ]
+
+library(caret)
+library(e1071)
+
+set.seed(randomSeed)  # Para reproducibilidad
+
+control <- trainControl(method = "cv",    # cross-validation
+                        number = 10,      # número de folds
+                        classProbs = TRUE,  # para clasificación
+                        summaryFunction = twoClassSummary)  # para métricas como ROC
+
+# Puedes cambiar a Accuracy, Sensitivity, etc.
+#modeloBarata <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+#modeloMediana <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+modeloMejoradoCara <- train(EsCara ~ OverallQual  + GarageCars + GrLivArea,
+                   data = train_data,
+                   method = "glm",
+                   family = "binomial",
+                   trControl = control,
+                   metric = "Precision-Recall AUC")
+
+#print("Modelo de EsBarata")
+#print(modeloBarata)
+
+#print("Modelo de EsMediana")
+#print(modeloMediana)
+
+print("Modelo de EsCara")
+
+predicciones <- predict(modeloMejoradoCara, newdata = test_data)
+
+# Convertir a clases (0 o 1) usando un umbral (por ejemplo, 0.5)
+# predicciones <- ifelse(probabilidades > 0.5, 1, 0)
+confusionMatrix(as.factor(predicciones), as.factor(test_data$EsCara))
+```
+
+Viendo la matriz de confusión obtenida vemos que estamos obteniendo más errores al predecir que una casa es cara, teniendo 22 casos (falsos negativos) que las casas si eran caras pero las clasifico como "No". Luego vemos que que hubo 10 casos (falsos positivos) que fueron mal clasificados. Entendemos que estos errores implican en que se afecta en la eficiencia de las ventas demostrando posibles falsos datos a los compradores haciendo que exista posibles pérdidas en las oportunidades de venta.
+
+```{r time}
+profvis({
+  # Cargar datos
+  training_data <- read.csv("data/train.csv")
+
+  # Reemplazar valores NA con 0
+  training_data[is.na(training_data)] <- 0
+
+  mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+  sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+  # Definir los límites
+  lower_limit <- mean_price - (1 * sd_price)
+  upper_limit <- mean_price + (2 * sd_price)
+
+
+  # Crear la variable de clasificación
+  training_data <- training_data %>%
+    mutate(
+      EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
+      EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
+      EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
+    )
+  training_data$Category <- as.factor(ifelse(training_data$EsCara == "Sí", "Cara",
+                                             ifelse(training_data$EsBarata == "Sí", "Barata", "Mediana")))
+  balanced_data <- ROSE(EsCara ~ OverallQual + GarageCars + GrLivArea + Category, data = training_data)$data
+
+  predictors <- balanced_data %>% select(-Category, -EsBarata, -EsMediana, -EsCara)
+  response <- balanced_data$EsCara
+
+  # Normalización (Estandarización Z-score)
+  preProc <- preProcess(predictors, method = c("center", "scale"))
+  predictors_scaled <- predict(preProc, predictors)
+
+  # Semilla para reproducibilidad
+  set.seed(randomSeed)
+
+  # Separar datos en entrenamiento (70%) y verificación (30%)
+  train_indices <- createDataPartition(response, p = 0.7, list = FALSE)
+
+  train_data <- predictors_scaled[train_indices, ]
+  test_data <- predictors_scaled[-train_indices, ]
+  train_response <- response[train_indices]
+  test_response <- response[-train_indices]
+
+  set.seed(randomSeed)  # Para reproducibilidad
+
+  control <- trainControl(method = "cv",    # cross-validation
+                           number = 10,      # número de folds
+                           classProbs = TRUE,  # para clasificación
+                           summaryFunction = twoClassSummary)  # para métricas como ROC
+
+  # Puedes cambiar a Accuracy, Sensitivity, etc.
+  # modeloBarata <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+  #                       data = train_data,
+  #                       method = "glm",
+  #                       family = "binomial",
+  #                       trControl = control,
+  #                       metric = "ROC")
+  # modeloMediana <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+  #                       data = train_data,
+  #                       method = "glm",
+  #                       family = "binomial",
+  #                       trControl = control,
+  #                       metric = "ROC")
+  modeloMejoradoCara <- train(EsCara ~ OverallQual + GarageCars + GrLivArea,
+                              data = train_data,
+                              method = "glm",
+                              family = "binomial",
+                              trControl = control,
+                              metric = "ROC") # Cambié la métrica a ROC para twoClassSummary
+
+  # print("Modelo de EsBarata")
+  # print(modeloBarata)
+
+  # print("Modelo de EsMediana")
+  # print(modeloMediana)
+
+  print("Modelo de EsCara")
+  print(modeloMejoradoCara)
+
+  predicciones_prob <- predict(modeloMejoradoCara, newdata = test_data, type = "prob")
+  predicciones <- ifelse(predicciones_prob$Sí > 0.5, "Sí", "No")
+
+  confusionMatrix(as.factor(predicciones), as.factor(test_response))
+})
+```
+
+En lo que respecta al tiempo y la memoria consumida se ve que para este modelo estos vaores son significativamente bajos. Se utilizo la libreria profviz para analizar estos datos y se obtuvo que el modelo consume un total de 17 MB que se asocia como una cantidad baja de memoria; por otro lado, se tiene un tiempo de ejecución total de 150 ms. La obtención de ambos valores bajos (memoria consumida y tiempo) indica una eficiencia algoritmica por parte del modelo mostrando una rápida y economica ejecución de este. 
+
+Teniendo los datos anteriores seria bueno analizar los modelos implementados para determinar el mejor. Esto se puede conocer rápido al analizar las matrices de confusiones que se presentaron a lo largo del reporte. En este caso tenemos un modelo inicial y su versión mejorada, se tiene que el modelo mejorado presenta un mejor rendimiento lo que hace que sea este el mejor modelo.
+
 
