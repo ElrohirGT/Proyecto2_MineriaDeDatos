@@ -445,4 +445,171 @@ En lo que respecta al tiempo y la memoria consumida se ve que para este modelo e
 
 Teniendo los datos anteriores seria bueno analizar los modelos implementados para determinar el mejor. Esto se puede conocer rápido al analizar las matrices de confusiones que se presentaron a lo largo del reporte. En este caso tenemos un modelo inicial y su versión mejorada, se tiene que el modelo mejorado presenta un mejor rendimiento lo que hace que sea este el mejor modelo.
 
+## Comparación de modelos
 
+Actualmente solo tenemos modelos que determinan si la una casa es cara o no, vamos a actualizarlo para deducir la variable "Categoría". A continuación se presenta la matriz de confusión obtenida por el modelo.
+
+```{r categoric model}
+library("nnet")
+library("dplyr")
+
+training_data <- read.csv("data/train.csv")
+training_data[is.na(training_data)] <- 0
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir los límites
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+
+# Crear la variable de clasificación
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                           ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+
+training_data$Category <- as.factor(training_data$Category)
+
+vars <- c("OverallQual", "GrLivArea", "YearBuilt", "TotalBsmtSF",
+          "GarageCars", "GarageArea", "FullBath", "TotRmsAbvGrd")
+
+
+set.seed(123)
+trainIndex <- createDataPartition(training_data$Category, p = 0.8, list = FALSE)
+train_set <- training_data[trainIndex, ]
+test_set <- training_data[-trainIndex, ]
+
+# Escalar variables numéricas
+preproc <- preProcess(train_set[, vars], method = c("center", "scale"))
+train_set[, vars] <- predict(preproc, train_set[, vars])
+test_set[, vars] <- predict(preproc, test_set[, vars])
+
+# Fórmula dinámica
+formula <- as.formula(paste("Category ~", paste(vars, collapse = " + ")))
+
+# Entrenar modelo multinomial
+modelo <- multinom(formula, data = train_set)
+
+# Predicciones
+predicciones <- predict(modelo, newdata = test_set)
+
+# Asegurar mismos niveles
+predicciones <- factor(predicciones, levels = levels(test_set$Category))
+
+confusionMatrix(predicciones, test_set$Category)
+```
+
+A continuación se presentaran las matrices de confusión de los modelos que se realizaron en reportes anteriores.
+
+- KNN:
+
+```{r Clasification Model}
+
+# Calcular media y desviación estándar
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir umbrales
+lower_threshold <- mean_price - 1.5 * sd_price
+upper_threshold <- mean_price + 1.5 * sd_price
+
+# Asignar categorías correctamente
+training_data$SalePriceCategory <- case_when(
+  training_data$SalePrice < lower_threshold ~ "Barata",
+  training_data$SalePrice > upper_threshold ~ "Cara",
+  TRUE ~ "Mediana"
+)
+
+# Convertir en factor
+training_data$SalePriceCategory <- factor(training_data$SalePriceCategory)
+
+# Partición de datos con la columna correcta
+set.seed(123)
+train_indices <- createDataPartition(training_data$SalePriceCategory, p = 0.7, list = FALSE)
+
+train_data <- training_data[train_indices, ]
+test_data <- training_data[-train_indices, ]
+
+# Normalizar solo variables numéricas
+train_data_numeric <- as.data.frame(lapply(train_data %>% select_if(is.numeric), normalize))
+test_data_numeric <- as.data.frame(lapply(test_data %>% select_if(is.numeric), normalize))
+
+# Definir variables predictoras y respuesta
+train_labels <- train_data$SalePriceCategory
+test_labels <- test_data$SalePriceCategory
+
+# Definir número óptimo de vecinos
+k <- round(sqrt(nrow(train_data)), 0)
+
+# Aplicar KNN
+knn_predictions <- knn(train = train_data_numeric,
+                       test = test_data_numeric,
+                       cl = train_labels,
+                       k = k)
+# Matriz de confusión
+conf_matrix <- confusionMatrix(knn_predictions, test_labels)
+print(conf_matrix)
+```
+
+- Naive Bayes:
+
+```{r Naïve Bayes}
+library(e1071)  # For Naïve Bayes
+library(glmnet)
+
+# Define price categories (Low, Medium, High) using quantiles
+training_data$SalePriceCategory <- cut(training_data$SalePrice, 
+                            breaks = quantile(training_data$SalePrice, probs = c(0, 0.33, 0.66, 1), na.rm = TRUE), 
+                            labels = c("Barata", "Media", "Cara"), 
+                            include.lowest = TRUE)
+
+df <- training_data %>% select(-SalePrice, -Id)  # Remove ID and continuous SalePrice
+
+df <- df %>% mutate_if(is.character, as.factor)
+
+set.seed(42)
+train_index <- createDataPartition(training_data$SalePriceCategory, p = 0.7, list = FALSE)
+train_data <- df[train_index, ]
+test_data <- df[-train_index, ]
+
+nb_model <- naiveBayes(SalePriceCategory ~ ., data = train_data)
+
+predictions <- predict(nb_model, test_data)
+
+conf_matrix <- confusionMatrix(predictions, test_data$SalePriceCategory)
+print(conf_matrix)
+```
+
+- Árbol de regresión:
+
+```{r}
+library(rpart)
+library(caret)
+
+set.seed(123)
+splitIndex <- createDataPartition(training_data$Category, p = 0.8, list = FALSE)
+train_data <- training_data[splitIndex, ]
+test_data <- training_data[-splitIndex, ]
+train_control <- trainControl(method = "cv", number = 10)
+
+modelo_tree_cv <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                        data = train_data,
+                        method = "rpart",
+                        trControl = train_control,
+                        tuneLength = 10)
+
+predicciones <- predict(modelo_tree_cv, newdata = test_data)
+
+confusionMatrix(predicciones, test_data$Category)
+
+```
+
+### Análisis de modelos
+
+Al comparar las matrices de confusión para la predicción de la variable "Category", la Regresión Logística y el KNN exhiben las mayores exactitudes generales, ambas al rededor del 93-94%. Haciendo un analisis más profundo se ve la regresión logística presenta una mayor cooncordancia en sus datos presentados. El modelo de Naive Bayes presenta una excatitud significativamente menor (71.4%). El Árbol de Regresión se sitúa con una exactitud del 91.03%, quedando por debajo de los otros modelos mejores.
+
+En lo que respecta a los errores presentado por cada modelo podemos ver lo siguiente. La Regresión Logística tiende a confundir las casas "Medianas" con "Baratas" y "Caras" en mayor medida. EL modelo de KNN muestra un patrón de error mayor al no predecir correctamente ningún caso de la categoría "Barata" y confundir significativamente las casas "Medianas" con "Caras". El Naive Bayes presenta errores distribuidos entre las clases, con una notable confusión entre "Medianas" y "Baratas". El Árbol de Regresión también muestra una tendecia a confundir "Medianas" con "Baratas" y "Caras".
+
+En los tiempos de ejecución ningún modelo se tardo excesivamente mucho. El único modelo que tuvo una ejecución mas longeva fue el Árbol de regresión pero su tiempo agregado no se separa mucho del de los otros modelos. 
+
+Teniendo todo el análisis anterior, tenemos que el modelo de regresión logística es el mejor modelo para predecir la variable "Category", ofreciendo un mejor equilibrio entre un alto rendimiento predictivo y una concordancia moderada.
