@@ -1,5 +1,5 @@
 ---
-title: "ReporteArboles"
+title: "ReporteRegresiónLogistica"
 author: "Flavio Galán, José Prince"
 date: "`r Sys.Date()`"
 output: html_document
@@ -8,7 +8,7 @@ output: html_document
 Link del repositorio: https://github.com/ElrohirGT/Proyecto2_MineriaDeDatos
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 
 library(class)
 library(caret)
@@ -16,8 +16,6 @@ library(dplyr)
 library(Metrics)
 library(profvis)
 randomSeed <- 123
-
-normalize <- function(x) { (x - min(x)) / (max(x) - min(x)) }
 
 # Cargar datos
 training_data <- read.csv("data/train.csv")
@@ -32,18 +30,11 @@ sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
 lower_limit <- mean_price - (1 * sd_price)
 upper_limit <- mean_price + (2 * sd_price)
 
-
 # Crear la variable de clasificación
 training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
-                           ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
-training_data <- training_data %>%
-  mutate(
-    EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
-    EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
-    EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
-  )
-training_data$Category <- as.factor(training_data$Category)
+                                ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
 
+training_data$Category <- as.factor(training_data$Category)
 
 predictors <- training_data %>% select(-Category)
 response <- training_data$Category
@@ -52,16 +43,18 @@ response <- training_data$Category
 preProc <- preProcess(predictors, method = c("center", "scale"))
 predictors_scaled <- predict(preProc, predictors)
 
+# Combinar las predictoras escaladas con la variable de respuesta
+scaled_data <- cbind(predictors_scaled, Category = response)
+scaled_data <- as.data.frame(scaled_data) # Convertir a data.frame
+
 # Semilla para reproducibilidad
-set.seed(randomSeed) 
+set.seed(randomSeed)
 
 # Separar datos en entrenamiento (70%) y verificación (30%)
-train_indices <- createDataPartition(response, p = 0.7, list = FALSE)
+train_indices <- createDataPartition(scaled_data$Category, p = 0.7, list = FALSE)
 
-train_data <- predictors_scaled[train_indices, ]
-test_data <- predictors_scaled[-train_indices, ]
-
-summary(train_data)
+train_data <- scaled_data[train_indices, ]
+test_data <- scaled_data[-train_indices, ]
 ```
 
 # Modelo de Regresión Logística

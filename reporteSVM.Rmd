@@ -1,0 +1,231 @@
+---
+title: "reporteSVM"
+author: "José ¨Prince, Flavio Galán"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+Link del repositorio: https://github.com/ElrohirGT/Proyecto2_MineriaDeDatos
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(dplyr)
+library(caret)
+library(ggplot2)
+library(e1071)
+
+# Cargar datos
+training_data <- read.csv("data/train.csv")
+training_data <- training_data %>%
+  select(LotArea, OverallQual, YearBuilt, GarageCars, GrLivArea, SalePrice)
+
+# Reemplazar valores NA con 0
+training_data[is.na(training_data)] <- 0
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir los límites
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                                ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+training_data <- training_data %>%
+  mutate(
+    EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
+    EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
+    EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
+  )
+training_data$Category <- as.factor(training_data$Category)
+
+predictors <- training_data %>% select(-Category)
+response <- training_data$Category
+
+# Normalización (Estandarización Z-score)
+preProc <- preProcess(predictors, method = c("center", "scale"))
+predictors_scaled <- predict(preProc, predictors)
+
+# Combinar las predictoras escaladas con la variable de respuesta
+scaled_data <- cbind(predictors_scaled, Category = response)
+scaled_data <- as.data.frame(scaled_data) # Convertir a data.frame
+
+# Semilla para reproducibilidad
+set.seed(123)
+
+# Separar datos en entrenamiento (70%) y verificación (30%)
+train_indices <- createDataPartition(scaled_data$Category, p = 0.7, list = FALSE)
+
+train_data <- scaled_data[train_indices, ]
+test_data_unscaled <- scaled_data[-train_indices, ] # Guardar la versión sin escalar para la respuesta
+
+# Escalar el conjunto de prueba usando el mismo preProc del entrenamiento
+test_predictors <- test_data_unscaled %>% select(-Category)
+test_data_scaled <- predict(preProc, test_predictors)
+test_data_scaled <- as.data.frame(test_data_scaled)
+test_data_scaled$Category <- test_data_unscaled$Category
+
+train_data <- train_data %>%
+  mutate(
+    Category = case_when(
+      EsCara == "Sí" ~ "Cara",
+      EsMediana == "Sí" ~ "Mediana",
+      EsBarata == "Sí" ~ "Barata"
+    )
+  )
+
+test_data_scaled <- test_data_scaled %>%
+  mutate(
+    Category = case_when(
+      EsCara == "Sí" ~ "Cara",
+      EsMediana == "Sí" ~ "Mediana",
+      EsBarata == "Sí" ~ "Barata"
+    )
+  )
+
+train_data$Category <- factor(train_data$Category, levels = c("Barata", "Mediana", "Cara"))
+test_data_scaled$Category <- factor(test_data_scaled$Category, levels = c("Barata", "Mediana", "Cara"))
+
+```
+
+Las transformaciones que se hicieron en el dataset involucraron la eliminación de los valores NA del dataset junto a la normalización de las variables numéricas. De igual forma para mejorar el rendimiento en el entrenamiento de los modelos que se harán a continuación, se mantuvo en el dataset unicamente la variable objetivo junto a las variables predictoras.
+
+## Modelos SVM
+
+A continuación se generan tres modelos de SVM: lineal, radial y polinomial. Cada modelo es testeado mediante diferentes parametros de forma automatica.
+
+```{r SVM Models}
+# ---------------------------
+# 1. Generar múltiples modelos SVM
+# ---------------------------
+
+# Definir el control de entrenamiento (cross-validation)
+train_control <- trainControl(method = "cv",
+                              number = 10,
+                              verboseIter = TRUE,
+                              classProbs = TRUE,
+                              summaryFunction = multiClassSummary)
+
+# Modelos SVM con diferentes kernels
+svm_linear <- train(Category ~ ., data = train_data,
+                    method = "svmLinear",
+                    tuneGrid = expand.grid(C = c(0.1, 1, 10)),
+                    trControl = train_control,
+                    metric = "Accuracy")
+
+svm_radial <- train(Category ~ ., data = train_data,
+                    method = "svmRadial",
+                    tuneGrid = expand.grid(C = c(0.1, 1, 10), sigma = c(0.01, 0.1, 1)),
+                    trControl = train_control,
+                    metric = "Accuracy")
+
+tune_grid_polynomial <- expand.grid(degree = c(2, 3), # Grados del polinomio a probar
+                                     scale = c(0.1, 1),   # Factor de escala a probar
+                                     C = c(0.1, 1, 10))  # Costos a probar
+
+svm_polynomial <- train(Category ~ ., data = training_data, # OJO: Usando training_data como en tu código original
+                         method = "svmPoly",
+                         tuneGrid = tune_grid_polynomial,
+                         trControl = train_control,
+                         metric = "Accuracy")
+
+
+# ---------------------------
+# 2. Resultados de los modelos
+# ---------------------------
+
+# Resumen de los modelos entrenados
+model_results <- list(
+  Linear = svm_linear,
+  Radial = svm_radial,
+  Polynomial = svm_polynomial
+)
+
+# Mostrar los mejores parámetros de cada modelo
+for (model_name in names(model_results)) {
+  best_tune <- model_results[[model_name]]$bestTune
+  print(paste("Mejores parámetros para", model_name, ":"))
+  print(best_tune)
+}
+
+# Resumen de resultados de los modelos
+results <- resamples(model_results)
+summary(results)
+
+```
+El resumen de los tres modelos SVM (Lineal, Radial y Polinomial) revela un rendimiento sorprendentemente perfecto en todas las métricas de clasificación evaluadas, incluyendo Accuracy, AUC, Kappa, y diversas medidas de precisión, recall y F1-score, con un valor de 1 en cada caso. El logLoss consistentemente bajo refuerza esta observación de predicciones altamente confiables.
+
+
+```{r confusion matrix}
+# ---------------------------
+# 3. Evaluación de desempeño
+# ---------------------------
+
+# Matriz de confusión para SVM Lineal
+predictions_linear <- predict(svm_linear, newdata = test_data_scaled)
+predictions_linear <- factor(predictions_linear, levels = levels(test_data_scaled$Category))
+conf_matrix_linear <- confusionMatrix(predictions_linear, test_data_scaled$Category)
+print("Matriz de Confusión para SVM Lineal:")
+print(conf_matrix_linear)
+
+# Matriz de confusión para SVM Radial
+predictions_radial <- predict(svm_radial, newdata = test_data_scaled)
+predictions_radial <- factor(predictions_radial, levels = levels(test_data_scaled$Category))
+conf_matrix_radial <- confusionMatrix(predictions_radial, test_data_scaled$Category)
+print("Matriz de Confusión para SVM Radial:")
+print(conf_matrix_radial)
+
+# Matriz de confusión para SVM Polinomial
+predictions_polynomial <- predict(svm_polynomial, newdata = test_data_scaled)
+predictions_polynomial <- factor(predictions_polynomial, levels = levels(test_data_scaled$Category))
+conf_matrix_polynomial <- confusionMatrix(predictions_polynomial, test_data_scaled$Category)
+print("Matriz de Confusión para SVM Polinomial:")
+print(conf_matrix_polynomial)
+
+```
+El SVM Lineal fue el mejor modelo, alcanzando una precisión del 95.87% y un fuerte acuerdo (Kappa de 0.8171). Clasificó perfectamente la clase "Mediana" y razonablemente bien "Barata", pero falló totalmente en detectar la clase "Cara". A pesar de esta debilidad, el modelo demuestra ser confiable en general y claramente superior frente a los otros.
+
+El SVM Radial, aunque logró un 87.39% de precisión, solo predijo la clase "Mediana" y falló completamente en "Barata" y "Cara", evidenciado por su Kappa de 0. El SVM Polinomial no logró clasificar ningún dato, resultando en métricas NaN. Por tanto, el SVM Lineal es el modelo recomendado, aunque sería conveniente trabajar en mejorar la detección de la clase "Cara".
+
+## Analisis de sobreajuste 
+
+```{r overfitting}
+# ---------------------------
+# Evaluación de desempeño (con métricas en entrenamiento y prueba)
+# ---------------------------
+
+# Función para evaluar el modelo y mostrar resultados
+evaluate_model <- function(model, train_data, test_data, model_name) {
+  cat(paste("Resultados para el modelo", model_name, ":\n"))
+
+  # Rendimiento en el conjunto de entrenamiento (usando los resultados de la validación cruzada)
+  cat("Rendimiento en el conjunto de entrenamiento (Validación Cruzada):\n")
+  print(model$results[which.max(model$results$Accuracy), ]) # Mostrar las métricas correspondientes a la mejor Accuracy
+
+  # Predicciones en el conjunto de prueba
+  predictions_test <- predict(model, newdata = test_data)
+  predictions_test <- factor(predictions_test, levels = levels(test_data$Category))
+
+  # Matriz de confusión en el conjunto de prueba
+  conf_matrix_test <- confusionMatrix(predictions_test, test_data$Category)
+  cat("\nMatriz de Confusión en el conjunto de prueba:\n")
+  print(conf_matrix_test)
+
+  # Métricas de rendimiento en el conjunto de prueba
+  cat("\nMétricas de rendimiento en el conjunto de prueba:\n")
+  print(conf_matrix_test$overall)
+  print(conf_matrix_test$byClass)
+}
+
+# Evaluar cada modelo
+evaluate_model(svm_linear, train_data, test_data_scaled, "SVM Lineal")
+evaluate_model(svm_radial, train_data, test_data_scaled, "SVM Radial")
+evaluate_model(svm_polynomial, train_data, training_data, "SVM Polinomial") # OJO: Usando training_data aquí como en la definición original del modelo
+```
+
+**SVM Lineal**: El modelo SVM Lineal muestra un rendimiento ligeramente inferior en el conjunto de prueba (aproximadamente 95.87% de precisión) en comparación con el rendimiento perfecto o casi perfecto observado durante la validación cruzada en el conjunto de entrenamiento. Esta pequeña disminución sugiere un ligero sobreajuste, donde el modelo aprendió algunos detalles específicos del conjunto de entrenamiento que no se generalizan perfectamente a los datos no vistos, especialmente para las categorías "Barata" y "Cara". Para mitigar esto, se podrían explorar valores más altos para el parámetro de regularización C en el tuneGrid para imponer una mayor penalización a los errores de clasificación en el entrenamiento, lo que podría llevar a un modelo más simple con mejor capacidad de generalización. También se podría considerar la inclusión de más datos de entrenamiento si están disponibles.
+
+**SVM Radial**: El modelo SVM Radial presenta una situación preocupante, con una precisión en el conjunto de prueba (87.39%) que coincide con la prevalencia de la clase mayoritaria ("Mediana") y un Kappa de 0. Esto indica un sobreajuste severo o una muy mala generalización. El modelo parece haber aprendido los datos de entrenamiento de tal manera que no puede discriminar entre las clases en el conjunto de prueba, prediciendo casi todo como la clase dominante. Para lidiar con esto, se deberían explorar diferentes rangos de valores para los hiperparámetros C y sigma en el tuneGrid, posiblemente incluyendo valores más pequeños de C para aumentar la regularización y diferentes escalas de sigma para controlar la influencia de cada punto de entrenamiento. Si el problema persiste, podría ser que el kernel radial no sea el más adecuado para este problema con las variables predictoras disponibles.
+
+**SVM Polinomial**: El modelo SVM Polinomial logra un rendimiento perfecto tanto en el conjunto de entrenamiento (según el análisis previo) como en el conjunto de prueba (100% de precisión y Kappa de 1). Esto indica una generalización ideal y un claro sobreajuste. Si bien este resultado es excelente, es demasiado ideal y perfecto, lo que hace que este modelo deba de volverse a hacer que no presente predicciones tan ajustadas.
