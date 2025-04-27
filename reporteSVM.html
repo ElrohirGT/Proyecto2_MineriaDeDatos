@@ -9,9 +9,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="José ¨Prince, Flavio Galán" />
+<meta name="author" content="José Prince, Flavio Galán" />
 
-<meta name="date" content="2025-04-25" />
+<meta name="date" content="2025-04-27" />
 
 <title>reporteSVM</title>
 
@@ -351,8 +351,8 @@ display: none;
 
 
 <h1 class="title toc-ignore">reporteSVM</h1>
-<h4 class="author">José ¨Prince, Flavio Galán</h4>
-<h4 class="date">2025-04-25</h4>
+<h4 class="author">José Prince, Flavio Galán</h4>
+<h4 class="date">2025-04-27</h4>
 
 </div>
 
@@ -1303,6 +1303,614 @@ Kappa de 1). Esto indica una generalización ideal y un claro
 sobreajuste. Si bien este resultado es excelente, es demasiado ideal y
 perfecto, lo que hace que este modelo deba de volverse a hacer que no
 presente predicciones tan ajustadas.</p>
+<div id="comparativa-entre-modelos" class="section level3">
+<h3>Comparativa entre modelos</h3>
+<p>Los modelos organizados por precisión es el siguiente:</p>
+<ol style="list-style-type: decimal">
+<li>SVM Polinomial (100%)</li>
+<li>SVM Lineal (95%)</li>
+<li>KNN (K=32) (94%)</li>
+<li>Árbol de Decisión (91%)</li>
+<li>Naive Bayes (78%)</li>
+</ol>
+<p>El algoritmo que más tiempo tomó entrenar en mi computadora fue el
+KNN, el que menos tomó fue el Naive Bayes y el Árbol de decisión. El
+árbol de decisión se ve como un buen middle ground entre performance y
+precisión final del modelo.</p>
+<p>Sin embargo, si lo que se busca es poder predictivo sin importar el
+costo, entonces la opción clara son los modelos SVM, no solo son los que
+mejor precisión han tenido de todos los modelos hasta ahora sino que
+además ni si quiera se demoraron más de 10s en entrenarse, lo que da un
+buen balance entre precisión y tiempo de entrenamiento.</p>
+</div>
+<div id="modelo-que-utiliza-el-precio-directamente" class="section level3">
+<h3>Modelo que utiliza el precio directamente</h3>
+<pre><code>## + Fold01: degree=1, scale=0.001, C=0.25 
+## - Fold01: degree=1, scale=0.001, C=0.25 
+## + Fold01: degree=2, scale=0.001, C=0.25 
+## - Fold01: degree=2, scale=0.001, C=0.25 
+## + Fold01: degree=3, scale=0.001, C=0.25 
+## - Fold01: degree=3, scale=0.001, C=0.25 
+## + Fold01: degree=1, scale=0.010, C=0.25 
+## - Fold01: degree=1, scale=0.010, C=0.25 
+## + Fold01: degree=2, scale=0.010, C=0.25 
+## - Fold01: degree=2, scale=0.010, C=0.25 
+## + Fold01: degree=3, scale=0.010, C=0.25 
+## - Fold01: degree=3, scale=0.010, C=0.25 
+## + Fold01: degree=1, scale=0.100, C=0.25 
+## - Fold01: degree=1, scale=0.100, C=0.25 
+## + Fold01: degree=2, scale=0.100, C=0.25 
+## - Fold01: degree=2, scale=0.100, C=0.25 
+## + Fold01: degree=3, scale=0.100, C=0.25 
+## - Fold01: degree=3, scale=0.100, C=0.25 
+## + Fold01: degree=1, scale=0.001, C=0.50 
+## - Fold01: degree=1, scale=0.001, C=0.50 
+## + Fold01: degree=2, scale=0.001, C=0.50 
+## - Fold01: degree=2, scale=0.001, C=0.50 
+## + Fold01: degree=3, scale=0.001, C=0.50 
+## - Fold01: degree=3, scale=0.001, C=0.50 
+## + Fold01: degree=1, scale=0.010, C=0.50 
+## - Fold01: degree=1, scale=0.010, C=0.50 
+## + Fold01: degree=2, scale=0.010, C=0.50 
+## - Fold01: degree=2, scale=0.010, C=0.50 
+## + Fold01: degree=3, scale=0.010, C=0.50 
+## - Fold01: degree=3, scale=0.010, C=0.50 
+## + Fold01: degree=1, scale=0.100, C=0.50 
+## - Fold01: degree=1, scale=0.100, C=0.50 
+## + Fold01: degree=2, scale=0.100, C=0.50 
+## - Fold01: degree=2, scale=0.100, C=0.50 
+## + Fold01: degree=3, scale=0.100, C=0.50 
+## - Fold01: degree=3, scale=0.100, C=0.50 
+## + Fold01: degree=1, scale=0.001, C=1.00 
+## - Fold01: degree=1, scale=0.001, C=1.00 
+## + Fold01: degree=2, scale=0.001, C=1.00 
+## - Fold01: degree=2, scale=0.001, C=1.00 
+## + Fold01: degree=3, scale=0.001, C=1.00 
+## - Fold01: degree=3, scale=0.001, C=1.00 
+## + Fold01: degree=1, scale=0.010, C=1.00 
+## - Fold01: degree=1, scale=0.010, C=1.00 
+## + Fold01: degree=2, scale=0.010, C=1.00 
+## - Fold01: degree=2, scale=0.010, C=1.00 
+## + Fold01: degree=3, scale=0.010, C=1.00 
+## - Fold01: degree=3, scale=0.010, C=1.00 
+## + Fold01: degree=1, scale=0.100, C=1.00 
+## - Fold01: degree=1, scale=0.100, C=1.00 
+## + Fold01: degree=2, scale=0.100, C=1.00 
+## - Fold01: degree=2, scale=0.100, C=1.00 
+## + Fold01: degree=3, scale=0.100, C=1.00 
+## - Fold01: degree=3, scale=0.100, C=1.00 
+## + Fold02: degree=1, scale=0.001, C=0.25 
+## - Fold02: degree=1, scale=0.001, C=0.25 
+## + Fold02: degree=2, scale=0.001, C=0.25 
+## - Fold02: degree=2, scale=0.001, C=0.25 
+## + Fold02: degree=3, scale=0.001, C=0.25 
+## - Fold02: degree=3, scale=0.001, C=0.25 
+## + Fold02: degree=1, scale=0.010, C=0.25 
+## - Fold02: degree=1, scale=0.010, C=0.25 
+## + Fold02: degree=2, scale=0.010, C=0.25 
+## - Fold02: degree=2, scale=0.010, C=0.25 
+## + Fold02: degree=3, scale=0.010, C=0.25 
+## - Fold02: degree=3, scale=0.010, C=0.25 
+## + Fold02: degree=1, scale=0.100, C=0.25 
+## - Fold02: degree=1, scale=0.100, C=0.25 
+## + Fold02: degree=2, scale=0.100, C=0.25 
+## - Fold02: degree=2, scale=0.100, C=0.25 
+## + Fold02: degree=3, scale=0.100, C=0.25 
+## - Fold02: degree=3, scale=0.100, C=0.25 
+## + Fold02: degree=1, scale=0.001, C=0.50 
+## - Fold02: degree=1, scale=0.001, C=0.50 
+## + Fold02: degree=2, scale=0.001, C=0.50 
+## - Fold02: degree=2, scale=0.001, C=0.50 
+## + Fold02: degree=3, scale=0.001, C=0.50 
+## - Fold02: degree=3, scale=0.001, C=0.50 
+## + Fold02: degree=1, scale=0.010, C=0.50 
+## - Fold02: degree=1, scale=0.010, C=0.50 
+## + Fold02: degree=2, scale=0.010, C=0.50 
+## - Fold02: degree=2, scale=0.010, C=0.50 
+## + Fold02: degree=3, scale=0.010, C=0.50 
+## - Fold02: degree=3, scale=0.010, C=0.50 
+## + Fold02: degree=1, scale=0.100, C=0.50 
+## - Fold02: degree=1, scale=0.100, C=0.50 
+## + Fold02: degree=2, scale=0.100, C=0.50 
+## - Fold02: degree=2, scale=0.100, C=0.50 
+## + Fold02: degree=3, scale=0.100, C=0.50 
+## - Fold02: degree=3, scale=0.100, C=0.50 
+## + Fold02: degree=1, scale=0.001, C=1.00 
+## - Fold02: degree=1, scale=0.001, C=1.00 
+## + Fold02: degree=2, scale=0.001, C=1.00 
+## - Fold02: degree=2, scale=0.001, C=1.00 
+## + Fold02: degree=3, scale=0.001, C=1.00 
+## - Fold02: degree=3, scale=0.001, C=1.00 
+## + Fold02: degree=1, scale=0.010, C=1.00 
+## - Fold02: degree=1, scale=0.010, C=1.00 
+## + Fold02: degree=2, scale=0.010, C=1.00 
+## - Fold02: degree=2, scale=0.010, C=1.00 
+## + Fold02: degree=3, scale=0.010, C=1.00 
+## - Fold02: degree=3, scale=0.010, C=1.00 
+## + Fold02: degree=1, scale=0.100, C=1.00 
+## - Fold02: degree=1, scale=0.100, C=1.00 
+## + Fold02: degree=2, scale=0.100, C=1.00 
+## - Fold02: degree=2, scale=0.100, C=1.00 
+## + Fold02: degree=3, scale=0.100, C=1.00 
+## - Fold02: degree=3, scale=0.100, C=1.00 
+## + Fold03: degree=1, scale=0.001, C=0.25 
+## - Fold03: degree=1, scale=0.001, C=0.25 
+## + Fold03: degree=2, scale=0.001, C=0.25 
+## - Fold03: degree=2, scale=0.001, C=0.25 
+## + Fold03: degree=3, scale=0.001, C=0.25 
+## - Fold03: degree=3, scale=0.001, C=0.25 
+## + Fold03: degree=1, scale=0.010, C=0.25 
+## - Fold03: degree=1, scale=0.010, C=0.25 
+## + Fold03: degree=2, scale=0.010, C=0.25 
+## - Fold03: degree=2, scale=0.010, C=0.25 
+## + Fold03: degree=3, scale=0.010, C=0.25 
+## - Fold03: degree=3, scale=0.010, C=0.25 
+## + Fold03: degree=1, scale=0.100, C=0.25 
+## - Fold03: degree=1, scale=0.100, C=0.25 
+## + Fold03: degree=2, scale=0.100, C=0.25 
+## - Fold03: degree=2, scale=0.100, C=0.25 
+## + Fold03: degree=3, scale=0.100, C=0.25 
+## - Fold03: degree=3, scale=0.100, C=0.25 
+## + Fold03: degree=1, scale=0.001, C=0.50 
+## - Fold03: degree=1, scale=0.001, C=0.50 
+## + Fold03: degree=2, scale=0.001, C=0.50 
+## - Fold03: degree=2, scale=0.001, C=0.50 
+## + Fold03: degree=3, scale=0.001, C=0.50 
+## - Fold03: degree=3, scale=0.001, C=0.50 
+## + Fold03: degree=1, scale=0.010, C=0.50 
+## - Fold03: degree=1, scale=0.010, C=0.50 
+## + Fold03: degree=2, scale=0.010, C=0.50 
+## - Fold03: degree=2, scale=0.010, C=0.50 
+## + Fold03: degree=3, scale=0.010, C=0.50 
+## - Fold03: degree=3, scale=0.010, C=0.50 
+## + Fold03: degree=1, scale=0.100, C=0.50 
+## - Fold03: degree=1, scale=0.100, C=0.50 
+## + Fold03: degree=2, scale=0.100, C=0.50 
+## - Fold03: degree=2, scale=0.100, C=0.50 
+## + Fold03: degree=3, scale=0.100, C=0.50 
+## - Fold03: degree=3, scale=0.100, C=0.50 
+## + Fold03: degree=1, scale=0.001, C=1.00 
+## - Fold03: degree=1, scale=0.001, C=1.00 
+## + Fold03: degree=2, scale=0.001, C=1.00 
+## - Fold03: degree=2, scale=0.001, C=1.00 
+## + Fold03: degree=3, scale=0.001, C=1.00 
+## - Fold03: degree=3, scale=0.001, C=1.00 
+## + Fold03: degree=1, scale=0.010, C=1.00 
+## - Fold03: degree=1, scale=0.010, C=1.00 
+## + Fold03: degree=2, scale=0.010, C=1.00 
+## - Fold03: degree=2, scale=0.010, C=1.00 
+## + Fold03: degree=3, scale=0.010, C=1.00 
+## - Fold03: degree=3, scale=0.010, C=1.00 
+## + Fold03: degree=1, scale=0.100, C=1.00 
+## - Fold03: degree=1, scale=0.100, C=1.00 
+## + Fold03: degree=2, scale=0.100, C=1.00 
+## - Fold03: degree=2, scale=0.100, C=1.00 
+## + Fold03: degree=3, scale=0.100, C=1.00 
+## - Fold03: degree=3, scale=0.100, C=1.00 
+## + Fold04: degree=1, scale=0.001, C=0.25 
+## - Fold04: degree=1, scale=0.001, C=0.25 
+## + Fold04: degree=2, scale=0.001, C=0.25 
+## - Fold04: degree=2, scale=0.001, C=0.25 
+## + Fold04: degree=3, scale=0.001, C=0.25 
+## - Fold04: degree=3, scale=0.001, C=0.25 
+## + Fold04: degree=1, scale=0.010, C=0.25 
+## - Fold04: degree=1, scale=0.010, C=0.25 
+## + Fold04: degree=2, scale=0.010, C=0.25 
+## - Fold04: degree=2, scale=0.010, C=0.25 
+## + Fold04: degree=3, scale=0.010, C=0.25 
+## - Fold04: degree=3, scale=0.010, C=0.25 
+## + Fold04: degree=1, scale=0.100, C=0.25 
+## - Fold04: degree=1, scale=0.100, C=0.25 
+## + Fold04: degree=2, scale=0.100, C=0.25 
+## - Fold04: degree=2, scale=0.100, C=0.25 
+## + Fold04: degree=3, scale=0.100, C=0.25 
+## - Fold04: degree=3, scale=0.100, C=0.25 
+## + Fold04: degree=1, scale=0.001, C=0.50 
+## - Fold04: degree=1, scale=0.001, C=0.50 
+## + Fold04: degree=2, scale=0.001, C=0.50 
+## - Fold04: degree=2, scale=0.001, C=0.50 
+## + Fold04: degree=3, scale=0.001, C=0.50 
+## - Fold04: degree=3, scale=0.001, C=0.50 
+## + Fold04: degree=1, scale=0.010, C=0.50 
+## - Fold04: degree=1, scale=0.010, C=0.50 
+## + Fold04: degree=2, scale=0.010, C=0.50 
+## - Fold04: degree=2, scale=0.010, C=0.50 
+## + Fold04: degree=3, scale=0.010, C=0.50 
+## - Fold04: degree=3, scale=0.010, C=0.50 
+## + Fold04: degree=1, scale=0.100, C=0.50 
+## - Fold04: degree=1, scale=0.100, C=0.50 
+## + Fold04: degree=2, scale=0.100, C=0.50 
+## - Fold04: degree=2, scale=0.100, C=0.50 
+## + Fold04: degree=3, scale=0.100, C=0.50 
+## - Fold04: degree=3, scale=0.100, C=0.50 
+## + Fold04: degree=1, scale=0.001, C=1.00 
+## - Fold04: degree=1, scale=0.001, C=1.00 
+## + Fold04: degree=2, scale=0.001, C=1.00 
+## - Fold04: degree=2, scale=0.001, C=1.00 
+## + Fold04: degree=3, scale=0.001, C=1.00 
+## - Fold04: degree=3, scale=0.001, C=1.00 
+## + Fold04: degree=1, scale=0.010, C=1.00 
+## - Fold04: degree=1, scale=0.010, C=1.00 
+## + Fold04: degree=2, scale=0.010, C=1.00 
+## - Fold04: degree=2, scale=0.010, C=1.00 
+## + Fold04: degree=3, scale=0.010, C=1.00 
+## - Fold04: degree=3, scale=0.010, C=1.00 
+## + Fold04: degree=1, scale=0.100, C=1.00 
+## - Fold04: degree=1, scale=0.100, C=1.00 
+## + Fold04: degree=2, scale=0.100, C=1.00 
+## - Fold04: degree=2, scale=0.100, C=1.00 
+## + Fold04: degree=3, scale=0.100, C=1.00 
+## - Fold04: degree=3, scale=0.100, C=1.00 
+## + Fold05: degree=1, scale=0.001, C=0.25 
+## - Fold05: degree=1, scale=0.001, C=0.25 
+## + Fold05: degree=2, scale=0.001, C=0.25 
+## - Fold05: degree=2, scale=0.001, C=0.25 
+## + Fold05: degree=3, scale=0.001, C=0.25 
+## - Fold05: degree=3, scale=0.001, C=0.25 
+## + Fold05: degree=1, scale=0.010, C=0.25 
+## - Fold05: degree=1, scale=0.010, C=0.25 
+## + Fold05: degree=2, scale=0.010, C=0.25 
+## - Fold05: degree=2, scale=0.010, C=0.25 
+## + Fold05: degree=3, scale=0.010, C=0.25 
+## - Fold05: degree=3, scale=0.010, C=0.25 
+## + Fold05: degree=1, scale=0.100, C=0.25 
+## - Fold05: degree=1, scale=0.100, C=0.25 
+## + Fold05: degree=2, scale=0.100, C=0.25 
+## - Fold05: degree=2, scale=0.100, C=0.25 
+## + Fold05: degree=3, scale=0.100, C=0.25 
+## - Fold05: degree=3, scale=0.100, C=0.25 
+## + Fold05: degree=1, scale=0.001, C=0.50 
+## - Fold05: degree=1, scale=0.001, C=0.50 
+## + Fold05: degree=2, scale=0.001, C=0.50 
+## - Fold05: degree=2, scale=0.001, C=0.50 
+## + Fold05: degree=3, scale=0.001, C=0.50 
+## - Fold05: degree=3, scale=0.001, C=0.50 
+## + Fold05: degree=1, scale=0.010, C=0.50 
+## - Fold05: degree=1, scale=0.010, C=0.50 
+## + Fold05: degree=2, scale=0.010, C=0.50 
+## - Fold05: degree=2, scale=0.010, C=0.50 
+## + Fold05: degree=3, scale=0.010, C=0.50 
+## - Fold05: degree=3, scale=0.010, C=0.50 
+## + Fold05: degree=1, scale=0.100, C=0.50 
+## - Fold05: degree=1, scale=0.100, C=0.50 
+## + Fold05: degree=2, scale=0.100, C=0.50 
+## - Fold05: degree=2, scale=0.100, C=0.50 
+## + Fold05: degree=3, scale=0.100, C=0.50 
+## - Fold05: degree=3, scale=0.100, C=0.50 
+## + Fold05: degree=1, scale=0.001, C=1.00 
+## - Fold05: degree=1, scale=0.001, C=1.00 
+## + Fold05: degree=2, scale=0.001, C=1.00 
+## - Fold05: degree=2, scale=0.001, C=1.00 
+## + Fold05: degree=3, scale=0.001, C=1.00 
+## - Fold05: degree=3, scale=0.001, C=1.00 
+## + Fold05: degree=1, scale=0.010, C=1.00 
+## - Fold05: degree=1, scale=0.010, C=1.00 
+## + Fold05: degree=2, scale=0.010, C=1.00 
+## - Fold05: degree=2, scale=0.010, C=1.00 
+## + Fold05: degree=3, scale=0.010, C=1.00 
+## - Fold05: degree=3, scale=0.010, C=1.00 
+## + Fold05: degree=1, scale=0.100, C=1.00 
+## - Fold05: degree=1, scale=0.100, C=1.00 
+## + Fold05: degree=2, scale=0.100, C=1.00 
+## - Fold05: degree=2, scale=0.100, C=1.00 
+## + Fold05: degree=3, scale=0.100, C=1.00 
+## - Fold05: degree=3, scale=0.100, C=1.00 
+## + Fold06: degree=1, scale=0.001, C=0.25 
+## - Fold06: degree=1, scale=0.001, C=0.25 
+## + Fold06: degree=2, scale=0.001, C=0.25 
+## - Fold06: degree=2, scale=0.001, C=0.25 
+## + Fold06: degree=3, scale=0.001, C=0.25 
+## - Fold06: degree=3, scale=0.001, C=0.25 
+## + Fold06: degree=1, scale=0.010, C=0.25 
+## - Fold06: degree=1, scale=0.010, C=0.25 
+## + Fold06: degree=2, scale=0.010, C=0.25 
+## - Fold06: degree=2, scale=0.010, C=0.25 
+## + Fold06: degree=3, scale=0.010, C=0.25 
+## - Fold06: degree=3, scale=0.010, C=0.25 
+## + Fold06: degree=1, scale=0.100, C=0.25 
+## - Fold06: degree=1, scale=0.100, C=0.25 
+## + Fold06: degree=2, scale=0.100, C=0.25 
+## - Fold06: degree=2, scale=0.100, C=0.25 
+## + Fold06: degree=3, scale=0.100, C=0.25 
+## - Fold06: degree=3, scale=0.100, C=0.25 
+## + Fold06: degree=1, scale=0.001, C=0.50 
+## - Fold06: degree=1, scale=0.001, C=0.50 
+## + Fold06: degree=2, scale=0.001, C=0.50 
+## - Fold06: degree=2, scale=0.001, C=0.50 
+## + Fold06: degree=3, scale=0.001, C=0.50 
+## - Fold06: degree=3, scale=0.001, C=0.50 
+## + Fold06: degree=1, scale=0.010, C=0.50 
+## - Fold06: degree=1, scale=0.010, C=0.50 
+## + Fold06: degree=2, scale=0.010, C=0.50 
+## - Fold06: degree=2, scale=0.010, C=0.50 
+## + Fold06: degree=3, scale=0.010, C=0.50 
+## - Fold06: degree=3, scale=0.010, C=0.50 
+## + Fold06: degree=1, scale=0.100, C=0.50 
+## - Fold06: degree=1, scale=0.100, C=0.50 
+## + Fold06: degree=2, scale=0.100, C=0.50 
+## - Fold06: degree=2, scale=0.100, C=0.50 
+## + Fold06: degree=3, scale=0.100, C=0.50 
+## - Fold06: degree=3, scale=0.100, C=0.50 
+## + Fold06: degree=1, scale=0.001, C=1.00 
+## - Fold06: degree=1, scale=0.001, C=1.00 
+## + Fold06: degree=2, scale=0.001, C=1.00 
+## - Fold06: degree=2, scale=0.001, C=1.00 
+## + Fold06: degree=3, scale=0.001, C=1.00 
+## - Fold06: degree=3, scale=0.001, C=1.00 
+## + Fold06: degree=1, scale=0.010, C=1.00 
+## - Fold06: degree=1, scale=0.010, C=1.00 
+## + Fold06: degree=2, scale=0.010, C=1.00 
+## - Fold06: degree=2, scale=0.010, C=1.00 
+## + Fold06: degree=3, scale=0.010, C=1.00 
+## - Fold06: degree=3, scale=0.010, C=1.00 
+## + Fold06: degree=1, scale=0.100, C=1.00 
+## - Fold06: degree=1, scale=0.100, C=1.00 
+## + Fold06: degree=2, scale=0.100, C=1.00 
+## - Fold06: degree=2, scale=0.100, C=1.00 
+## + Fold06: degree=3, scale=0.100, C=1.00 
+## - Fold06: degree=3, scale=0.100, C=1.00 
+## + Fold07: degree=1, scale=0.001, C=0.25 
+## - Fold07: degree=1, scale=0.001, C=0.25 
+## + Fold07: degree=2, scale=0.001, C=0.25 
+## - Fold07: degree=2, scale=0.001, C=0.25 
+## + Fold07: degree=3, scale=0.001, C=0.25 
+## - Fold07: degree=3, scale=0.001, C=0.25 
+## + Fold07: degree=1, scale=0.010, C=0.25 
+## - Fold07: degree=1, scale=0.010, C=0.25 
+## + Fold07: degree=2, scale=0.010, C=0.25 
+## - Fold07: degree=2, scale=0.010, C=0.25 
+## + Fold07: degree=3, scale=0.010, C=0.25 
+## - Fold07: degree=3, scale=0.010, C=0.25 
+## + Fold07: degree=1, scale=0.100, C=0.25 
+## - Fold07: degree=1, scale=0.100, C=0.25 
+## + Fold07: degree=2, scale=0.100, C=0.25 
+## - Fold07: degree=2, scale=0.100, C=0.25 
+## + Fold07: degree=3, scale=0.100, C=0.25 
+## - Fold07: degree=3, scale=0.100, C=0.25 
+## + Fold07: degree=1, scale=0.001, C=0.50 
+## - Fold07: degree=1, scale=0.001, C=0.50 
+## + Fold07: degree=2, scale=0.001, C=0.50 
+## - Fold07: degree=2, scale=0.001, C=0.50 
+## + Fold07: degree=3, scale=0.001, C=0.50 
+## - Fold07: degree=3, scale=0.001, C=0.50 
+## + Fold07: degree=1, scale=0.010, C=0.50 
+## - Fold07: degree=1, scale=0.010, C=0.50 
+## + Fold07: degree=2, scale=0.010, C=0.50 
+## - Fold07: degree=2, scale=0.010, C=0.50 
+## + Fold07: degree=3, scale=0.010, C=0.50 
+## - Fold07: degree=3, scale=0.010, C=0.50 
+## + Fold07: degree=1, scale=0.100, C=0.50 
+## - Fold07: degree=1, scale=0.100, C=0.50 
+## + Fold07: degree=2, scale=0.100, C=0.50 
+## - Fold07: degree=2, scale=0.100, C=0.50 
+## + Fold07: degree=3, scale=0.100, C=0.50 
+## - Fold07: degree=3, scale=0.100, C=0.50 
+## + Fold07: degree=1, scale=0.001, C=1.00 
+## - Fold07: degree=1, scale=0.001, C=1.00 
+## + Fold07: degree=2, scale=0.001, C=1.00 
+## - Fold07: degree=2, scale=0.001, C=1.00 
+## + Fold07: degree=3, scale=0.001, C=1.00 
+## - Fold07: degree=3, scale=0.001, C=1.00 
+## + Fold07: degree=1, scale=0.010, C=1.00 
+## - Fold07: degree=1, scale=0.010, C=1.00 
+## + Fold07: degree=2, scale=0.010, C=1.00 
+## - Fold07: degree=2, scale=0.010, C=1.00 
+## + Fold07: degree=3, scale=0.010, C=1.00 
+## - Fold07: degree=3, scale=0.010, C=1.00 
+## + Fold07: degree=1, scale=0.100, C=1.00 
+## - Fold07: degree=1, scale=0.100, C=1.00 
+## + Fold07: degree=2, scale=0.100, C=1.00 
+## - Fold07: degree=2, scale=0.100, C=1.00 
+## + Fold07: degree=3, scale=0.100, C=1.00 
+## - Fold07: degree=3, scale=0.100, C=1.00 
+## + Fold08: degree=1, scale=0.001, C=0.25 
+## - Fold08: degree=1, scale=0.001, C=0.25 
+## + Fold08: degree=2, scale=0.001, C=0.25 
+## - Fold08: degree=2, scale=0.001, C=0.25 
+## + Fold08: degree=3, scale=0.001, C=0.25 
+## - Fold08: degree=3, scale=0.001, C=0.25 
+## + Fold08: degree=1, scale=0.010, C=0.25 
+## - Fold08: degree=1, scale=0.010, C=0.25 
+## + Fold08: degree=2, scale=0.010, C=0.25 
+## - Fold08: degree=2, scale=0.010, C=0.25 
+## + Fold08: degree=3, scale=0.010, C=0.25 
+## - Fold08: degree=3, scale=0.010, C=0.25 
+## + Fold08: degree=1, scale=0.100, C=0.25 
+## - Fold08: degree=1, scale=0.100, C=0.25 
+## + Fold08: degree=2, scale=0.100, C=0.25 
+## - Fold08: degree=2, scale=0.100, C=0.25 
+## + Fold08: degree=3, scale=0.100, C=0.25 
+## - Fold08: degree=3, scale=0.100, C=0.25 
+## + Fold08: degree=1, scale=0.001, C=0.50 
+## - Fold08: degree=1, scale=0.001, C=0.50 
+## + Fold08: degree=2, scale=0.001, C=0.50 
+## - Fold08: degree=2, scale=0.001, C=0.50 
+## + Fold08: degree=3, scale=0.001, C=0.50 
+## - Fold08: degree=3, scale=0.001, C=0.50 
+## + Fold08: degree=1, scale=0.010, C=0.50 
+## - Fold08: degree=1, scale=0.010, C=0.50 
+## + Fold08: degree=2, scale=0.010, C=0.50 
+## - Fold08: degree=2, scale=0.010, C=0.50 
+## + Fold08: degree=3, scale=0.010, C=0.50 
+## - Fold08: degree=3, scale=0.010, C=0.50 
+## + Fold08: degree=1, scale=0.100, C=0.50 
+## - Fold08: degree=1, scale=0.100, C=0.50 
+## + Fold08: degree=2, scale=0.100, C=0.50 
+## - Fold08: degree=2, scale=0.100, C=0.50 
+## + Fold08: degree=3, scale=0.100, C=0.50 
+## - Fold08: degree=3, scale=0.100, C=0.50 
+## + Fold08: degree=1, scale=0.001, C=1.00 
+## - Fold08: degree=1, scale=0.001, C=1.00 
+## + Fold08: degree=2, scale=0.001, C=1.00 
+## - Fold08: degree=2, scale=0.001, C=1.00 
+## + Fold08: degree=3, scale=0.001, C=1.00 
+## - Fold08: degree=3, scale=0.001, C=1.00 
+## + Fold08: degree=1, scale=0.010, C=1.00 
+## - Fold08: degree=1, scale=0.010, C=1.00 
+## + Fold08: degree=2, scale=0.010, C=1.00 
+## - Fold08: degree=2, scale=0.010, C=1.00 
+## + Fold08: degree=3, scale=0.010, C=1.00 
+## - Fold08: degree=3, scale=0.010, C=1.00 
+## + Fold08: degree=1, scale=0.100, C=1.00 
+## - Fold08: degree=1, scale=0.100, C=1.00 
+## + Fold08: degree=2, scale=0.100, C=1.00 
+## - Fold08: degree=2, scale=0.100, C=1.00 
+## + Fold08: degree=3, scale=0.100, C=1.00 
+## - Fold08: degree=3, scale=0.100, C=1.00 
+## + Fold09: degree=1, scale=0.001, C=0.25 
+## - Fold09: degree=1, scale=0.001, C=0.25 
+## + Fold09: degree=2, scale=0.001, C=0.25 
+## - Fold09: degree=2, scale=0.001, C=0.25 
+## + Fold09: degree=3, scale=0.001, C=0.25 
+## - Fold09: degree=3, scale=0.001, C=0.25 
+## + Fold09: degree=1, scale=0.010, C=0.25 
+## - Fold09: degree=1, scale=0.010, C=0.25 
+## + Fold09: degree=2, scale=0.010, C=0.25 
+## - Fold09: degree=2, scale=0.010, C=0.25 
+## + Fold09: degree=3, scale=0.010, C=0.25 
+## - Fold09: degree=3, scale=0.010, C=0.25 
+## + Fold09: degree=1, scale=0.100, C=0.25 
+## - Fold09: degree=1, scale=0.100, C=0.25 
+## + Fold09: degree=2, scale=0.100, C=0.25 
+## - Fold09: degree=2, scale=0.100, C=0.25 
+## + Fold09: degree=3, scale=0.100, C=0.25 
+## - Fold09: degree=3, scale=0.100, C=0.25 
+## + Fold09: degree=1, scale=0.001, C=0.50 
+## - Fold09: degree=1, scale=0.001, C=0.50 
+## + Fold09: degree=2, scale=0.001, C=0.50 
+## - Fold09: degree=2, scale=0.001, C=0.50 
+## + Fold09: degree=3, scale=0.001, C=0.50 
+## - Fold09: degree=3, scale=0.001, C=0.50 
+## + Fold09: degree=1, scale=0.010, C=0.50 
+## - Fold09: degree=1, scale=0.010, C=0.50 
+## + Fold09: degree=2, scale=0.010, C=0.50 
+## - Fold09: degree=2, scale=0.010, C=0.50 
+## + Fold09: degree=3, scale=0.010, C=0.50 
+## - Fold09: degree=3, scale=0.010, C=0.50 
+## + Fold09: degree=1, scale=0.100, C=0.50 
+## - Fold09: degree=1, scale=0.100, C=0.50 
+## + Fold09: degree=2, scale=0.100, C=0.50 
+## - Fold09: degree=2, scale=0.100, C=0.50 
+## + Fold09: degree=3, scale=0.100, C=0.50 
+## - Fold09: degree=3, scale=0.100, C=0.50 
+## + Fold09: degree=1, scale=0.001, C=1.00 
+## - Fold09: degree=1, scale=0.001, C=1.00 
+## + Fold09: degree=2, scale=0.001, C=1.00 
+## - Fold09: degree=2, scale=0.001, C=1.00 
+## + Fold09: degree=3, scale=0.001, C=1.00 
+## - Fold09: degree=3, scale=0.001, C=1.00 
+## + Fold09: degree=1, scale=0.010, C=1.00 
+## - Fold09: degree=1, scale=0.010, C=1.00 
+## + Fold09: degree=2, scale=0.010, C=1.00 
+## - Fold09: degree=2, scale=0.010, C=1.00 
+## + Fold09: degree=3, scale=0.010, C=1.00 
+## - Fold09: degree=3, scale=0.010, C=1.00 
+## + Fold09: degree=1, scale=0.100, C=1.00 
+## - Fold09: degree=1, scale=0.100, C=1.00 
+## + Fold09: degree=2, scale=0.100, C=1.00 
+## - Fold09: degree=2, scale=0.100, C=1.00 
+## + Fold09: degree=3, scale=0.100, C=1.00 
+## - Fold09: degree=3, scale=0.100, C=1.00 
+## + Fold10: degree=1, scale=0.001, C=0.25 
+## - Fold10: degree=1, scale=0.001, C=0.25 
+## + Fold10: degree=2, scale=0.001, C=0.25 
+## - Fold10: degree=2, scale=0.001, C=0.25 
+## + Fold10: degree=3, scale=0.001, C=0.25 
+## - Fold10: degree=3, scale=0.001, C=0.25 
+## + Fold10: degree=1, scale=0.010, C=0.25 
+## - Fold10: degree=1, scale=0.010, C=0.25 
+## + Fold10: degree=2, scale=0.010, C=0.25 
+## - Fold10: degree=2, scale=0.010, C=0.25 
+## + Fold10: degree=3, scale=0.010, C=0.25 
+## - Fold10: degree=3, scale=0.010, C=0.25 
+## + Fold10: degree=1, scale=0.100, C=0.25 
+## - Fold10: degree=1, scale=0.100, C=0.25 
+## + Fold10: degree=2, scale=0.100, C=0.25 
+## - Fold10: degree=2, scale=0.100, C=0.25 
+## + Fold10: degree=3, scale=0.100, C=0.25 
+## - Fold10: degree=3, scale=0.100, C=0.25 
+## + Fold10: degree=1, scale=0.001, C=0.50 
+## - Fold10: degree=1, scale=0.001, C=0.50 
+## + Fold10: degree=2, scale=0.001, C=0.50 
+## - Fold10: degree=2, scale=0.001, C=0.50 
+## + Fold10: degree=3, scale=0.001, C=0.50 
+## - Fold10: degree=3, scale=0.001, C=0.50 
+## + Fold10: degree=1, scale=0.010, C=0.50 
+## - Fold10: degree=1, scale=0.010, C=0.50 
+## + Fold10: degree=2, scale=0.010, C=0.50 
+## - Fold10: degree=2, scale=0.010, C=0.50 
+## + Fold10: degree=3, scale=0.010, C=0.50 
+## - Fold10: degree=3, scale=0.010, C=0.50 
+## + Fold10: degree=1, scale=0.100, C=0.50 
+## - Fold10: degree=1, scale=0.100, C=0.50 
+## + Fold10: degree=2, scale=0.100, C=0.50 
+## - Fold10: degree=2, scale=0.100, C=0.50 
+## + Fold10: degree=3, scale=0.100, C=0.50 
+## - Fold10: degree=3, scale=0.100, C=0.50 
+## + Fold10: degree=1, scale=0.001, C=1.00 
+## - Fold10: degree=1, scale=0.001, C=1.00 
+## + Fold10: degree=2, scale=0.001, C=1.00 
+## - Fold10: degree=2, scale=0.001, C=1.00 
+## + Fold10: degree=3, scale=0.001, C=1.00 
+## - Fold10: degree=3, scale=0.001, C=1.00 
+## + Fold10: degree=1, scale=0.010, C=1.00 
+## - Fold10: degree=1, scale=0.010, C=1.00 
+## + Fold10: degree=2, scale=0.010, C=1.00 
+## - Fold10: degree=2, scale=0.010, C=1.00 
+## + Fold10: degree=3, scale=0.010, C=1.00 
+## - Fold10: degree=3, scale=0.010, C=1.00 
+## + Fold10: degree=1, scale=0.100, C=1.00 
+## - Fold10: degree=1, scale=0.100, C=1.00 
+## + Fold10: degree=2, scale=0.100, C=1.00 
+## - Fold10: degree=2, scale=0.100, C=1.00 
+## + Fold10: degree=3, scale=0.100, C=1.00 
+## - Fold10: degree=3, scale=0.100, C=1.00 
+## Aggregating results
+## Selecting tuning parameters
+## Fitting degree = 2, scale = 0.1, C = 0.25 on full training set</code></pre>
+<pre><code>## Resultados para el modelo de regresion de Sale Price :</code></pre>
+<pre><code>## Rendimiento en el conjunto de entrenamiento (Validación Cruzada):</code></pre>
+<pre><code>##    degree scale C     RMSE  Rsquared      MAE   RMSESD RsquaredSD    MAESD
+## 24      3  0.01 1 34204.45 0.8236895 21288.06 15649.61   0.134252 2328.721</code></pre>
+<pre><code>## 
+## Rendimiento en el conjunto de prueba:</code></pre>
+<pre><code>##         RMSE     Rsquared          MAE 
+## 4.010407e+04 7.362592e-01 2.208610e+04</code></pre>
+<p>El modelo de regresión de arriba es un SVM polinomial entrenado con
+validación cruzada, el mejor R cuadrado encontrado es de 0.84 durante el
+entrenamiento, teniendo por hiperparámetros: * degree: 3 * scale: 0.1 *
+c: 0.25</p>
+<p>Con la data de validación se obtuvieron resultados muy lamentables,
+llegando a 0.6023 el R cuadrado, lo cual es apenas un poco mejor a
+“tirar una moneda”, el RMSE es de 54 mil dólares, lo que significa que
+el precio generalmente tiene un rango de error de más/menos 54 mil
+dólares.</p>
+<p><strong>A qué creemos que se debe este cambio con respecto al
+clasificador SVM polinomial anterior que obtuvo básicamente una nota
+perfecta?</strong></p>
+<p>Creemos que esta diferencia se debe principalmente a la mayor
+especificidad del “SalePrice” con respecto a la categoría, lo que hace
+que el modelo simplemente sea uno mucho más complicado y con mayor
+probabilidad de fallo, puesto que el precio lo debe adivinar casi que
+exacto para tener una mejor nota, mientras que el modelo clasificador
+solamente tiene 3 opciones y no importa qué tan mal adivine el precio
+mientras no se salga de sus clasificaciones.</p>
+</div>
+</div>
+<div id="conclusiones-y-recomendaciones" class="section level2">
+<h2>Conclusiones y Recomendaciones</h2>
+<p>En conclusión, el modelo SVM Polinomial fue el mejor tanto en
+accuracy, y se tarda un tiempo medio en entrenar. Hasta ahora ha probado
+ser el mejor predictor para clasificar una casa en alguna de las 3
+categorías.</p>
+<p>Nuestra principal recomendación es utilizar varios modelos, por
+ejemplo, se podría usar un modelo específicamente diseñado para
+clasificar casas, el SVM polinomial clasificador desarrollado con
+anterioridad podría ser un buen ejemplo. Luego se tendría 3 modelos
+especializados, cada uno para cada categoría de casa. Bajo esta
+arquitectura cada modelo se puede especializar en su área en específico
+y no tiene toda la interferencia de los demás datos, lo que podría
+llevar a muchos mejores resultados que los acá mostrados.</p>
 </div>
 
 

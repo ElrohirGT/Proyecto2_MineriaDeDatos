@@ -1,6 +1,6 @@
 ---
 title: "reporteSVM"
-author: "José ¨Prince, Flavio Galán"
+author: "José Prince, Flavio Galán"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -229,3 +229,98 @@ evaluate_model(svm_polynomial, train_data, training_data, "SVM Polinomial") # OJ
 **SVM Radial**: El modelo SVM Radial presenta una situación preocupante, con una precisión en el conjunto de prueba (87.39%) que coincide con la prevalencia de la clase mayoritaria ("Mediana") y un Kappa de 0. Esto indica un sobreajuste severo o una muy mala generalización. El modelo parece haber aprendido los datos de entrenamiento de tal manera que no puede discriminar entre las clases en el conjunto de prueba, prediciendo casi todo como la clase dominante. Para lidiar con esto, se deberían explorar diferentes rangos de valores para los hiperparámetros C y sigma en el tuneGrid, posiblemente incluyendo valores más pequeños de C para aumentar la regularización y diferentes escalas de sigma para controlar la influencia de cada punto de entrenamiento. Si el problema persiste, podría ser que el kernel radial no sea el más adecuado para este problema con las variables predictoras disponibles.
 
 **SVM Polinomial**: El modelo SVM Polinomial logra un rendimiento perfecto tanto en el conjunto de entrenamiento (según el análisis previo) como en el conjunto de prueba (100% de precisión y Kappa de 1). Esto indica una generalización ideal y un claro sobreajuste. Si bien este resultado es excelente, es demasiado ideal y perfecto, lo que hace que este modelo deba de volverse a hacer que no presente predicciones tan ajustadas.
+
+### Comparativa entre modelos
+
+Los modelos organizados por precisión es el siguiente:
+
+1. SVM Polinomial (100%)
+2. SVM Lineal (95%)
+3. KNN (K=32) (94%)
+4. Árbol de Decisión (91%)
+5. Naive Bayes (78%)
+
+El algoritmo que más tiempo tomó entrenar en mi computadora fue el KNN, el que menos tomó fue el Naive Bayes y el Árbol de decisión. El árbol de decisión se ve como un buen middle ground entre performance y precisión final del modelo.
+
+Sin embargo, si lo que se busca es poder predictivo sin importar el costo, entonces la opción clara son los modelos SVM, no solo son los que mejor precisión han tenido de todos los modelos hasta ahora sino que además ni si quiera se demoraron más de 10s en entrenarse, lo que da un buen balance entre precisión y tiempo de entrenamiento.
+
+### Modelo que utiliza el precio directamente
+```{r}
+
+
+training_data <- read.csv("data/train.csv")
+training_data <- training_data %>%
+  select(LotArea, OverallQual, YearBuilt, GarageCars, GrLivArea, SalePrice)
+
+# Reemplazar valores NA con 0
+training_data[is.na(training_data)] <- 0
+
+# Definir los límites
+predictors <- training_data %>% select(-SalePrice)
+response <- training_data$SalePrice
+
+# Normalización (Estandarización Z-score)
+preProc <- preProcess(predictors, method = c("center", "scale"))
+predictors_scaled <- predict(preProc, predictors)
+
+# Combinar las predictoras escaladas con la variable de respuesta
+scaled_data <- cbind(predictors_scaled, SalePrice = response)
+scaled_data <- as.data.frame(scaled_data) # Convertir a data.frame
+
+# Semilla para reproducibilidad
+set.seed(123)
+
+# Separar datos en entrenamiento (70%) y verificación (30%)
+train_indices <- createDataPartition(scaled_data$SalePrice, p = 0.7, list = FALSE)
+
+train_data <- scaled_data[train_indices, ]
+test_data_unscaled <- scaled_data[-train_indices, ] # Guardar la versión sin escalar para la respuesta
+
+# Escalar el conjunto de prueba usando el mismo preProc del entrenamiento
+test_predictors <- test_data_unscaled %>% select(-SalePrice)
+test_data_scaled <- predict(preProc, test_predictors)
+test_data_scaled <- as.data.frame(test_data_scaled)
+test_data_scaled$SalePrice <- test_data_unscaled$SalePrice
+
+train_control <- trainControl(method="cv",
+                              number = 10,
+                              verboseIter = TRUE)
+
+model <- train(SalePrice ~ .,
+                data = train_data,
+                method = "svmPoly",
+               tuneLength = 3,
+                trControl = train_control)            
+
+
+cat(paste("Resultados para el modelo", "de regresion de Sale Price", ":\n"))
+
+  # Rendimiento en el conjunto de entrenamiento (usando los resultados de la validación cruzada)
+  cat("Rendimiento en el conjunto de entrenamiento (Validación Cruzada):\n")
+  print(model$results[which.max(model$results$Rsquared), ])
+
+  # Predicciones en el conjunto de prueba
+  predictions_test <- predict(model, newdata = test_data_unscaled)
+  # predictions_test <- factor(predictions_test, levels = levels(training_data$SalePrice))
+
+  results <- postResample(pred = predictions_test, obs = test_data_unscaled$SalePrice)
+  cat("\nRendimiento en el conjunto de prueba:\n")
+  print(results)
+```
+
+El modelo de regresión de arriba es un SVM polinomial entrenado con validación cruzada, el mejor R cuadrado encontrado es de 0.84 durante el entrenamiento, teniendo por hiperparámetros:
+* degree: 3
+* scale: 0.1
+* c: 0.25
+
+Con la data de validación se obtuvieron resultados muy lamentables, llegando a 0.6023 el R cuadrado, lo cual es apenas un poco mejor a "tirar una moneda", el RMSE es de 54 mil dólares, lo que significa que el precio generalmente tiene un rango de error de más/menos 54 mil dólares.
+
+**A qué creemos que se debe este cambio con respecto al clasificador SVM polinomial anterior que obtuvo básicamente una nota perfecta?**
+
+Creemos que esta diferencia se debe principalmente a la mayor especificidad del "SalePrice" con respecto a la categoría, lo que hace que el modelo simplemente sea uno mucho más complicado y con mayor probabilidad de fallo, puesto que el precio lo debe adivinar casi que exacto para tener una mejor nota, mientras que el modelo clasificador solamente tiene 3 opciones y no importa qué tan mal adivine el precio mientras no se salga de sus clasificaciones.
+
+
+## Conclusiones y Recomendaciones
+En conclusión, el modelo SVM Polinomial fue el mejor tanto en accuracy, y se tarda un tiempo medio en entrenar. Hasta ahora ha probado ser el mejor predictor para clasificar una casa en alguna de las 3 categorías.
+
+Nuestra principal recomendación es utilizar varios modelos, por ejemplo, se podría usar un modelo específicamente diseñado para clasificar casas, el SVM polinomial clasificador desarrollado con anterioridad podría ser un buen ejemplo. Luego se tendría 3 modelos especializados, cada uno para cada categoría de casa. Bajo esta arquitectura cada modelo se puede especializar en su área en específico y no tiene toda la interferencia de los demás datos, lo que podría llevar a muchos mejores resultados que los acá mostrados.
