@@ -1,0 +1,249 @@
+---
+title: "ReporteFinal"
+author: "José ¨Prince, Flavio Galán"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(caret)
+library(ggplot2)
+library(e1071)
+library(nnet)
+
+# Cargar datos y seleccionar columnas
+training_data <- read.csv("data/train.csv")
+training_data <- training_data %>% select(LotArea, OverallQual, YearBuilt, GarageCars, GrLivArea, SalePrice)
+
+# Convertir OverallQual a factor
+training_data$OverallQual <- as.factor(training_data$OverallQual)
+
+training_data <- data.frame(lapply(training_data, function(col) {
+  if (is.numeric(col)) {
+    col[is.na(col)] <- 0
+    return(col)
+  } else if (is.factor(col)) {
+    col <- as.character(col)          # Convertir a character para modificar
+    col[is.na(col)] <- "N/A"          # Reemplazar NA
+    return(as.factor(col))            # Volver a convertir a factor
+  } else if (is.character(col)) {
+    col[is.na(col)] <- "N/A"
+    return(col)
+  } else {
+    return(col)  # Dejar otras columnas sin cambio
+  }
+}))
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+# Crear la variable de clasificación
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                                ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+
+training_data$Category <- factor(training_data$Category, levels = c("Baratas", "Medianas", "Caras"))
+
+# Aplicar One-Hot Encoding a OverallQual ANTES de dividir los datos
+dummy_model <- dummyVars("~ OverallQual", data = training_data, fullRank = TRUE)
+encoded_data <- predict(dummy_model, newdata = training_data)
+training_data <- cbind(training_data[, !(names(training_data) %in% "OverallQual")], encoded_data)
+
+set.seed(123)
+sample_indices <- sample(seq_len(nrow(training_data)), size = 0.7 * nrow(training_data))
+train_set <- training_data[sample_indices, ]
+test_set  <- training_data[-sample_indices, ]
+
+# Normalizar variables cuantitativas DESPUÉS de la división
+quant_vars <- c(
+  "GarageCars", "SalePrice", "LotArea", "GrLivArea", "YearBuilt"
+)
+
+quant_vars <- quant_vars[quant_vars %in% colnames(train_set)] # Usar train_set para evitar errores si alguna columna no está en test_set
+
+normalize_z <- function(train, test, columns) {
+  for (col in columns) {
+    mean_col <- mean(train[[col]], na.rm = TRUE)
+    sd_col <- sd(train[[col]], na.rm = TRUE)
+
+    if (sd_col == 0) {
+      train[[col]] <- 0
+      test[[col]]  <- 0
+    } else {
+      train[[col]] <- (train[[col]] - mean_col) / sd_col
+      test[[col]]  <- (test[[col]] - mean_col) / sd_col
+    }
+  }
+  return(list(train = train, test = test))
+}
+
+# Aplicar normalización DESPUÉS de la división
+normalized_data <- normalize_z(train_set, test_set, quant_vars)
+train_set <- normalized_data$train
+test_set  <- normalized_data$test
+
+```
+
+
+## Modelos de Red neuronal
+
+```{r model 1}
+
+# Entrenar modelo 1 con 5 neuronas ocultas
+modelo_1 <- nnet::nnet(
+  Category ~ ., 
+  data = train_set[, !(names(train_set) %in% c("SalePrice"))], 
+  size = 5,       # Número de neuronas en la capa oculta
+  decay = 0.01,   # Regularización
+  maxit = 500,    # Número de iteraciones
+  trace = FALSE
+)
+
+# Predicciones modelo 1
+preds_1 <- predict(modelo_1, newdata = test_set, type = "class")
+
+# Matriz de confusión
+confusionMatrix(factor(preds_1, levels = levels(test_set$Category)), test_set$Category)
+
+
+```
+
+El modelo de red neuronal muestra una precisión del 89.75%, mostrando una buena capacidad de predicción. Al analizar la predicción por clase, se ve un excelente rendimiento prediciendo la categoria "Medianas". Para las clases "Baratas" y "Caras" se ve que el modelo tiene más dificultad para identificar correctamente estas categorias.
+
+```{r model 2}
+
+# Entrenar modelo 2 con 10 neuronas ocultas
+modelo_2 <- nnet::nnet(
+  Category ~ ., 
+  data = train_set[, !(names(train_set) %in% c("SalePrice"))], 
+  size = 10,       # Más neuronas ocultas
+  decay = 0.1,     # Mayor penalización (más regularización)
+  maxit = 1000,    # Más iteraciones para mejor convergencia
+  trace = FALSE
+)
+
+# Predicciones modelo 2
+preds_2 <- predict(modelo_2, newdata = test_set, type = "class")
+
+# Matriz de confusión
+confusionMatrix(factor(preds_2, levels = levels(test_set$Category)), test_set$Category)
+
+```
+
+Este modelo con 10 neuronas ocultas muestra una ligera mejora en la predicción (89.98%). Se puede ver una mejora ligera en la predicción de la clase "Medianas". Para este modelo solo se ve una ligera mejora para la predicción de la clase "Cara", manteniendo la predicción de la variable "Barata" igual que en el modelo anterior.
+
+Ambos modelos de red neuronal presentan un rendimiento general similar, con una precisión ligeramente superior (89.98%) en comparación con el modelo de 5 neuronas (89.75%). La mejora con el aumento de neuronas ocultas es modesta. A nivel de clase, el modelo con 10 neuronas muestra una ligera mejora en la sensibilidad para la clase "Medianas" y un mejor valor predictivo positivo y especificidad para la clase "Caras", mientras que el rendimiento para la clase "Baratas" se mantiene igual en ambos modelos. En resumen, duplicar el número de neuronas ocultas resultó en una mejora ligera en el rendimiento general y en la predicción de ciertas clases.
+
+## Sobreajuste en modelos
+
+```{r overfitting modelo 1}
+
+# Verifica que Category sea factor
+train_set$Category <- as.factor(train_set$Category)
+test_set$Category <- as.factor(test_set$Category)
+
+# Variables utilizadas en el modelo (las mismas que en entrenamiento)
+features <- setdiff(names(train_set), c("Category", "SalePrice"))
+
+# Predicciones
+train_preds <- predict(modelo_1, newdata = train_set[, features], type = "class")
+test_preds  <- predict(modelo_1, newdata = test_set[, features], type = "class")
+
+# Accuracy
+train_acc <- mean(train_preds == train_set$Category)
+test_acc  <- mean(test_preds == test_set$Category)
+
+cat("Accuracy en entrenamiento: ", round(train_acc * 100, 2), "%\n")
+cat("Accuracy en prueba:        ", round(test_acc  * 100, 2), "%\n")
+
+# Diagnóstico de sobreajuste
+if ((train_acc - test_acc) > 0.1) {
+  cat("\n⚠️ Posible sobreajuste detectado: gran diferencia entre entrenamiento y prueba.\n")
+} else if (train_acc < 0.1 && test_acc < 0.1) {
+  cat("\n❌ El modelo no está aprendiendo nada útil. Revisa los datos o el modelo.\n")
+} else {
+  cat("\n✅ No se detecta sobreajuste significativo.\n")
+}
+```
+
+Para el tuneo del modelo se hará de forma automatica, de estas formas se prueban diferentes combinaciones de parametros y se escoge la de mejor accuracy.
+
+```{r overfitting modelo 2}
+
+train_set$Category <- as.factor(train_set$Category)
+test_set$Category <- as.factor(test_set$Category)
+
+# Variables utilizadas en el modelo (las mismas que en entrenamiento)
+features <- setdiff(names(train_set), c("Category", "SalePrice"))
+
+# Predicciones
+train_preds <- predict(modelo_2, newdata = train_set[, features], type = "class")
+test_preds  <- predict(modelo_2, newdata = test_set[, features], type = "class")
+
+# Accuracy
+train_acc <- mean(train_preds == train_set$Category)
+test_acc  <- mean(test_preds == test_set$Category)
+
+cat("Accuracy en entrenamiento: ", round(train_acc * 100, 2), "%\n")
+cat("Accuracy en prueba:        ", round(test_acc  * 100, 2), "%\n")
+
+# Diagnóstico de sobreajuste
+if ((train_acc - test_acc) > 0.1) {
+  cat("\n⚠️ Posible sobreajuste detectado: gran diferencia entre entrenamiento y prueba.\n")
+} else if (train_acc < 0.1 && test_acc < 0.1) {
+  cat("\n❌ El modelo no está aprendiendo nada útil. Revisa los datos o el modelo.\n")
+} else {
+  cat("\n✅ No se detecta sobreajuste significativo.\n")
+}
+```
+
+Se puede ver que ninguno de los modelos anteriormente presenta sobreajuste, permitiendonos mejorar el modelo haciendolo un tuneo a sus parametros.
+
+```{r upgrading the model}
+
+train_data <- train_set[, !(names(train_set) %in% c("SalePrice"))]
+
+# Control de entrenamiento con validación cruzada (5-fold)
+ctrl <- trainControl(
+  method = "cv",
+  number = 5,
+  classProbs = FALSE,
+  summaryFunction = defaultSummary
+)
+
+# Grid de hiperparámetros
+tune_grid <- expand.grid(
+  size = c(3, 5, 10, 15),       # número de neuronas en la capa oculta
+  decay = c(0, 0.001, 0.01, 0.1)  # regularización
+)
+
+# Entrenamiento con tuning
+set.seed(123)  # reproducibilidad
+modelo_tuned <- train(
+  Category ~ ., 
+  data = train_data,
+  method = "nnet",
+  trControl = ctrl,
+  tuneGrid = tune_grid,
+  trace = FALSE,
+  maxit = 1000
+)
+
+# Resultados
+print(modelo_tuned)
+plot(modelo_tuned)
+
+final_preds <- predict(modelo_tuned, newdata = test_set)
+confusionMatrix(final_preds, test_set$Category)
+
+```
+
+En la gráfica podemos ver que los mejores parámetros encontrados fue para un size de 5 junto a un decay de 0.1, es con estos parametros que se genera la matriz de confusión para obtener el accuracy del modelo. 
+
+El modelo ajustado muestra una ligera mejora en la precisión general (90.21%) respecto al anterior, especialmente en la clase “Medianas”, que alcanza una alta sensibilidad (96.6%) y precisión (92.4%). Sin embargo, las clases minoritarias como “Baratas” y “Caras” continúan presentando bajos niveles de sensibilidad (55.0% y 36.8%, respectivamente), lo que indica que el modelo tiene dificultades para identificarlas correctamente debido al desbalance en los datos. Aunque el ajuste de parámetros mejoró el rendimiento global y ciertos aspectos específicos, el modelo sigue sesgado hacia la clase dominante. En caso de que se quiera mejorar el modelo, lo que se podria hacer es rebalancear el dataset para tener una mejor representación de las clases minoritarias y asi mejorar su predicción en el modelo.
+
