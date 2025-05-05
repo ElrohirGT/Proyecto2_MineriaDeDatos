@@ -2538,7 +2538,10 @@ Par determinar la categoría de precio a la que debe pertenecer una casa, recome
 
 Para los modelos predictivos de la variable SalePrice tenemos:
 
+
 | Modelo | MAE |
 |------------------------------------|------------------------------------|
 | SVM | 54 mil dólares |
-| Redes Neuronales | 0.27 desviaciones estándar o `r 0.27 * sd(y_test)` dólares |
+| Redes Neuronales | 0.27 desviaciones estándar o 21052.48 dólares |
+
+El modelo de redes neuronales se equivoca con +- 21 mil dólares, lo cual es mucho más preciso que el de SVM. Por lo que aunque se tarda un poco más en entrenar, lo recomendamos simplemente por la mayor precisión que tiene.
