@@ -1,13 +1,17 @@
 ---
 title: "ReporteFinal"
-author: "José ¨Prince, Flavio Galán"
+author: "José Prince, Flavio Galán"
 date: "`r Sys.Date()`"
-output: html_document
+output: 
+  prettydoc::html_pretty:
+    toc: yes
+    theme: cayman
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
+library(prettydoc)
 library(dplyr)
 library(caret)
 library(ggplot2)
@@ -241,9 +245,236 @@ plot(modelo_tuned)
 final_preds <- predict(modelo_tuned, newdata = test_set)
 confusionMatrix(final_preds, test_set$Category)
 
+summary(train_set)
+
 ```
 
 En la gráfica podemos ver que los mejores parámetros encontrados fue para un size de 5 junto a un decay de 0.1, es con estos parametros que se genera la matriz de confusión para obtener el accuracy del modelo. 
 
 El modelo ajustado muestra una ligera mejora en la precisión general (90.21%) respecto al anterior, especialmente en la clase “Medianas”, que alcanza una alta sensibilidad (96.6%) y precisión (92.4%). Sin embargo, las clases minoritarias como “Baratas” y “Caras” continúan presentando bajos niveles de sensibilidad (55.0% y 36.8%, respectivamente), lo que indica que el modelo tiene dificultades para identificarlas correctamente debido al desbalance en los datos. Aunque el ajuste de parámetros mejoró el rendimiento global y ciertos aspectos específicos, el modelo sigue sesgado hacia la clase dominante. En caso de que se quiera mejorar el modelo, lo que se podria hacer es rebalancear el dataset para tener una mejor representación de las clases minoritarias y asi mejorar su predicción en el modelo.
 
+Ahora utilizaremos la variable SalePrice directamente.
+
+## Modelos Neuronales sobre SalePrice
+```{r Keras Setup}
+#install.packages("keras")
+#library(keras)
+#reticulate::install_python(version = "3.10:latest")
+#install_keras()
+```
+
+
+```{r Modelos Neuronales sobre SalePrice}
+library(keras)
+# library(dplyr)
+
+# Assuming your data is in a data frame called 'df'
+# Remove 'Category' and set y as SalePrice
+df <- train_set  # replace with your actual variable
+df <- df %>% select(-Category)  # remove categorical variable (or encode it separately)
+
+X <- df %>% select(-SalePrice) %>% as.matrix() 
+y <- df$SalePrice %>% as.matrix()
+
+# Split into training and test sets
+set.seed(123)
+indices <- sample(1:nrow(X), size = 0.8 * nrow(X))
+X_train <- X[indices, ]
+y_train <- y[indices]
+X_test <- X[-indices, ]
+y_test <- y[-indices, ]
+
+model1 <- keras_model_sequential() %>%
+  layer_dense(units = 32, activation = "relu", input_shape = ncol(X)) %>%
+  layer_dense(units = 16, activation = "relu") %>%
+  layer_dense(units = 1, activation = "linear")
+
+model2 <- keras_model_sequential() %>%
+  layer_dense(units = 64, activation = "tanh", input_shape = ncol(X)) %>%
+  layer_dense(units = 32, activation = "tanh") %>%
+  layer_dense(units = 16, activation = "tanh") %>%
+  layer_dense(units = 1, activation = "linear")
+
+# Compile
+model1 %>% compile(
+  optimizer = optimizer_adam(learning_rate = 0.001),
+  loss = "mse",
+  metrics = c("mae")
+)
+
+model2 %>% compile(
+  optimizer = optimizer_adam(learning_rate = 0.001),
+  loss = "mse",
+  metrics = c("mae")
+)
+
+# Train
+history1 <- model1 %>% fit(
+  X_train, y_train,
+  epochs = 100,
+  batch_size = 32,
+  validation_split = 0.2,
+  verbose = 0
+)
+
+history2 <- model2 %>% fit(
+  X_train, y_train,
+  epochs = 100,
+  batch_size = 32,
+  validation_split = 0.2,
+  verbose = 0
+)
+
+score1 <- model1 %>% evaluate(X_test, y_test, verbose = 0)
+score2 <- model2 %>% evaluate(X_test, y_test, verbose = 0)
+
+cat("Model 1 - MAE:", round(score1, 4), "\n")
+cat("Model 2 - MAE:", round(score2, 4), "\n")
+
+plot(history1, main = "Training History - Model 1 (ReLU)")
+plot(history2, main = "Training History - Model 2 (tanh)")
+
+```
+
+Tienen una tendencia a la baja en su mae, no se vuelven a cruzar luego del inicio (en algunos casos nunca se cruzan) y el set de validación se encuentra siempre por encima del de entrenamiento. Por todas estas razones puedo firmar que realmente no existe overfitting en los modelos sino que realmente se están comportando como deberían.
+
+De ambos modelos, el que mejor se comportó fue el segundo, ya que obtuvo un MAE de 0.27 en la data de validación! Lo que nos indica que se equivoca masomenos por 1/3 de una desviación estándar sobre el precio de la casa.
+
+### Mejora del modelo
+
+Para mejorar el modelo podríamos intentar aumentar la cantidad de neuronas que tiene:
+```{r Aumentando la cantidad de neuronas por capa}
+df <- train_set  # replace with your actual variable
+df <- df %>% select(-Category)  # remove categorical variable (or encode it separately)
+
+X <- df %>% select(-SalePrice) %>% as.matrix() 
+y <- df$SalePrice %>% as.matrix()
+
+# Split into training and test sets
+set.seed(123)
+indices <- sample(1:nrow(X), size = 0.8 * nrow(X))
+X_train <- X[indices, ]
+y_train <- y[indices]
+X_test <- X[-indices, ]
+y_test <- y[-indices, ]
+
+model2 <- keras_model_sequential() %>%
+  layer_dense(units = 128, activation = "tanh", input_shape = ncol(X)) %>%
+  layer_dense(units = 64, activation = "tanh") %>%
+  layer_dense(units = 32, activation = "tanh") %>%
+  layer_dense(units = 1, activation = "linear")
+
+model2 %>% compile(
+  optimizer = optimizer_adam(learning_rate = 0.001),
+  loss = "mse",
+  metrics = c("mae")
+)
+
+history2 <- model2 %>% fit(
+  X_train, y_train,
+  epochs = 100,
+  batch_size = 32,
+  validation_split = 0.2,
+  verbose = 0
+)
+
+score2 <- model2 %>% evaluate(X_test, y_test, verbose = 0)
+cat("Model 2 - MAE:", round(score2, 4), "\n")
+plot(history2, main = "Training History - Model 2 (tanh)")
+
+```
+
+Si duplicamos la cantidad de neuronas dentro de cada capa intermedia realmente no se puede apreciar una mejora en el modelo, de hecho técnicamente empeora puesto que ahora las curvas tienden a separarse entre sí. Talvez le podemos dar más tiempo de entrenamiento...
+```{r More training time}
+df <- train_set  # replace with your actual variable
+df <- df %>% select(-Category)  # remove categorical variable (or encode it separately)
+
+X <- df %>% select(-SalePrice) %>% as.matrix() 
+y <- df$SalePrice %>% as.matrix()
+
+# Split into training and test sets
+set.seed(123)
+indices <- sample(1:nrow(X), size = 0.8 * nrow(X))
+X_train <- X[indices, ]
+y_train <- y[indices]
+X_test <- X[-indices, ]
+y_test <- y[-indices, ]
+
+model2 <- keras_model_sequential() %>%
+  layer_dense(units = 128, activation = "tanh", input_shape = ncol(X)) %>%
+  layer_dense(units = 64, activation = "tanh") %>%
+  layer_dense(units = 32, activation = "tanh") %>%
+  layer_dense(units = 1, activation = "linear")
+
+model2 %>% compile(
+  optimizer = optimizer_adam(learning_rate = 0.001),
+  loss = "mse",
+  metrics = c("mae")
+)
+
+history2 <- model2 %>% fit(
+  X_train, y_train,
+  epochs = 1000,
+  batch_size = 32,
+  validation_split = 0.2,
+  verbose = 0
+)
+
+score2 <- model2 %>% evaluate(X_test, y_test, verbose = 0)
+cat("Model 2 - MAE:", round(score2, 4), "\n")
+plot(history2, main = "Training History - Model 2 (tanh)")
+```
+
+Aumentando la cantidad de epoch solo se empeoró el estado de sobreajuste, la última solución que estoy dispuesto a probar es aumentar solamente la cantidad de neuronas de las capas 1 y 2.
+
+```{r More starting neurons}
+df <- train_set  # replace with your actual variable
+df <- df %>% select(-Category)  # remove categorical variable (or encode it separately)
+
+X <- df %>% select(-SalePrice) %>% as.matrix() 
+y <- df$SalePrice %>% as.matrix()
+
+# Split into training and test sets
+set.seed(123)
+indices <- sample(1:nrow(X), size = 0.8 * nrow(X))
+X_train <- X[indices, ]
+y_train <- y[indices]
+X_test <- X[-indices, ]
+y_test <- y[-indices, ]
+
+model2 <- keras_model_sequential() %>%
+  layer_dense(units = 128, activation = "tanh", input_shape = ncol(X)) %>%
+  layer_dense(units = 32, activation = "tanh") %>%
+  layer_dense(units = 16, activation = "tanh") %>%
+  layer_dense(units = 1, activation = "linear")
+
+model2 %>% compile(
+  optimizer = optimizer_adam(learning_rate = 0.001),
+  loss = "mse",
+  metrics = c("mae")
+)
+
+history2 <- model2 %>% fit(
+  X_train, y_train,
+  epochs = 100,
+  batch_size = 32,
+  validation_split = 0.2,
+  verbose = 0
+)
+
+score2 <- model2 %>% evaluate(X_test, y_test, verbose = 0)
+cat("Model 2 - MAE:", round(score2, 4), "\n")
+plot(history2, main = "Training History - Model 2 (tanh)")
+```
+
+El loss en el modelo ahora tiende a la alza en las epoch finales del entrenamiento, lo cual me indic que realmente no es una mejora, sino que en realidad estoy haciendo un poco peor al modelo al realizar este cambio, además las líneas de mae están más separadas entre sí que antes.
+
+Por todo esto el mejor modelo sigue siendo entonces el segundo que realizamos en esta sección.
+
+## ¿Cuál es el mejor modelo para predecir?
+
+El mejor modelo para predecir categorías como se dijo en entregas anteriores fue el SVM polinomial, indiscutiblemente, aunque un contendiente cercano fue el de árboles de decisión principalmente debido a lo corto que fue su tiempo de entrenamiento y a los resultados decentes que brindó.
+
+En cuanto a predicción de la variable objetivo de SalePrice creemos que el modelo de redes neuronales fue el que mejor resultados brindó puesto que el mejor de los modelos expuestos con anterioridad llegó a solamente 0.27% de la desviación estándar de error mientras que el de SVM fue mucho más alto.
+
+# Conclusiones
