@@ -8,9 +8,2053 @@ output:
     theme: cayman
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+# Análisis Exploratorio
 
+```{r setup general, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r Load Data}
+load_data <- function(){
+  training_data <- read.csv("data/train.csv")
+  test_data <- read.csv("data/test.csv")
+}
+training_data <- read.csv("data/train.csv")
+test_data <- read.csv("data/test.csv")
+```
+
+## Descripción de Variables
+
+```{r Descripción de Variables}
+summary(training_data)
+```
+
+[Link al repo](https://github.com/ElrohirGT/Proyecto2_MineriaDeDatos)
+
+Para este dataset contamos con las siguientes variables:
+
+### **Variables Cuantitativas**
+
+#### **Discretas**
+
+-   **Bedroom**: Número de habitaciones sobre el nivel del sótano.\
+-   **Kitchen**: Número de cocinas.\
+-   **TotRmsAbvGrd**: Total de habitaciones sobre el nivel del suelo (excluye baños).\
+-   **Fireplaces**: Número de chimeneas.\
+-   **GarageCars**: Tamaño del garaje en capacidad de autos.\
+-   **BsmtFullBath**: Baños completos en el sótano.\
+-   **BsmtHalfBath**: Medios baños en el sótano.\
+-   **FullBath**: Baños completos sobre el nivel del suelo.\
+-   **HalfBath**: Medios baños sobre el nivel del suelo.\
+-   **MoSold**: Mes de venta.\
+-   **YrSold**: Año de venta.
+
+#### **Continuas**
+
+-   **SalePrice**: Precio de venta de la propiedad en dólares.\
+-   **LotFrontage**: Pies lineales de calle conectados a la propiedad.\
+-   **LotArea**: Tamaño del terreno en pies cuadrados.\
+-   **MasVnrArea**: Área de revestimiento de mampostería en pies cuadrados.\
+-   **BsmtFinSF1**: Pies cuadrados terminados de tipo 1 en el sótano.\
+-   **BsmtFinSF2**: Pies cuadrados terminados de tipo 2 en el sótano.\
+-   **BsmtUnfSF**: Pies cuadrados sin terminar del sótano.\
+-   **TotalBsmtSF**: Pies cuadrados totales del sótano.\
+-   **1stFlrSF**: Pies cuadrados del primer piso.\
+-   **2ndFlrSF**: Pies cuadrados del segundo piso.\
+-   **LowQualFinSF**: Pies cuadrados terminados de baja calidad (todos los pisos).\
+-   **GrLivArea**: Pies cuadrados de área habitable sobre el nivel del suelo.\
+-   **GarageArea**: Tamaño del garaje en pies cuadrados.\
+-   **WoodDeckSF**: Área de la terraza de madera en pies cuadrados.\
+-   **OpenPorchSF**: Área del porche abierto en pies cuadrados.\
+-   **EnclosedPorch**: Área del porche cerrado en pies cuadrados.\
+-   **3SsnPorch**: Área del porche de tres estaciones en pies cuadrados.\
+-   **ScreenPorch**: Área del porche con malla en pies cuadrados.\
+-   **PoolArea**: Área de la piscina en pies cuadrados.\
+-   **MiscVal**: Valor en dólares de la característica adicional.\
+-   **GarageYrBlt**: Año en que se construyó el garaje.\
+-   **YearBuilt**: Año de construcción original.\
+-   **YearRemodAdd**: Año de remodelación.
+
+### **Variables Cualitativas**
+
+#### **Nominales**
+
+-   **MSZoning**: Clasificación general de zonificación.\
+-   **Street**: Tipo de acceso por carretera.\
+-   **Alley**: Tipo de acceso por callejón.\
+-   **LandContour**: Nivelación del terreno.\
+-   **Utilities**: Tipo de servicios públicos disponibles.\
+-   **LotConfig**: Configuración del terreno.\
+-   **Neighborhood**: Ubicación física dentro de la ciudad de Ames.\
+-   **Condition1**: Proximidad a una carretera principal o ferrocarril.\
+-   **Condition2**: Proximidad a una carretera principal o ferrocarril (si hay un segundo presente).\
+-   **BldgType**: Tipo de vivienda.\
+-   **HouseStyle**: Estilo de vivienda.\
+-   **RoofStyle**: Tipo de techo.\
+-   **RoofMatl**: Material del techo.\
+-   **Exterior1st**: Revestimiento exterior de la casa.\
+-   **Exterior2nd**: Revestimiento exterior de la casa (si hay más de un material).\
+-   **MasVnrType**: Tipo de revestimiento de mampostería.\
+-   **Foundation**: Tipo de cimentación.\
+-   **Heating**: Tipo de calefacción.\
+-   **CentralAir**: Aire acondicionado central (Sí/No).\
+-   **Electrical**: Sistema eléctrico.\
+-   **GarageType**: Ubicación del garaje.\
+-   **GarageFinish**: Acabado interior del garaje.\
+-   **PavedDrive**: Entrada pavimentada.\
+-   **Fence**: Calidad de la cerca.\
+-   **MiscFeature**: Característica adicional no cubierta en otras categorías.\
+-   **SaleType**: Tipo de venta.\
+-   **SaleCondition**: Condición de la venta.
+
+#### **Ordinales**
+
+-   **MSSubClass**: Clase del edificio (número representa diferentes categorías).\
+-   **LotShape**: Forma general de la propiedad (Regular, Irregular, etc.).\
+-   **LandSlope**: Pendiente del terreno (Nivel, Suave, Empinada).\
+-   **OverallQual**: Calidad general de los materiales y acabados (escala de 1 a 10).\
+-   **OverallCond**: Calificación general del estado de la vivienda (escala de 1 a 10).\
+-   **ExterQual**: Calidad del material exterior (Escala: Excelente, Buena, Regular, Pobre).\
+-   **ExterCond**: Condición actual del material en el exterior (Escala similar a ExterQual).\
+-   **BsmtQual**: Altura del sótano (Escala de calidad).\
+-   **BsmtCond**: Condición general del sótano.\
+-   **BsmtExposure**: Paredes del sótano con acceso al exterior o jardín.\
+-   **BsmtFinType1**: Calidad del área terminada del sótano.\
+-   **BsmtFinType2**: Calidad del segundo área terminada del sótano.\
+-   **HeatingQC**: Calidad y condición de la calefacción.\
+-   **KitchenQual**: Calidad de la cocina.\
+-   **Functional**: Calificación de funcionalidad de la vivienda.\
+-   **FireplaceQu**: Calidad de la chimenea.\
+-   **GarageQual**: Calidad del garaje.\
+-   **GarageCond**: Condición del garaje.\
+-   **PoolQC**: Calidad de la piscina.
+
+## Análisis Exploratorio
+
+### ¿Cuál es el comportamiento de la variable SalesPrice?
+
+```{r Histograma de SalesPrice - Analisis Exploratorio}
+library(ggplot2)
+
+load_data()
+
+ggplot(training_data, aes(x = SalePrice)) +
+  geom_histogram(aes(y = ..density..), binwidth = 10000, fill = "blue", color = "black", alpha = 0.7) +
+  geom_density(color = "red", size = 1.2) +
+  geom_vline(xintercept = mean(training_data$SalePrice)+3*sd(training_data$SalePrice), color = "purple")+
+  geom_vline(xintercept = mean(training_data$SalePrice)-1.5*sd(training_data$SalePrice), color = "purple")+
+  geom_vline(xintercept = mean(training_data$SalePrice), color = "green")+
+  theme_minimal() +
+  labs(title = "Distribution of House Sale Prices with Density Curve",
+       x = "Sale Price",
+       y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+El histograma nos dice que es probable que tenga forma normal aunque increíblemente cesgada hacia la derecha. La línea verde representa la media, la línea morada de la derecha es 3 desviaciones estándar después de la media, la línea morada de la izquierda es 1.5 desviaciones estándar antes de la media.
+
+La prueba de Shapiro (la cual la podemos utilizar puesto nuestros datos no tienen más de 5000 observaciones) nos dice que:
+
+```{r Prueba Normal}
+load_data()
+shapiro.test(training_data$SalePrice)
+ks.test(training_data$SalePrice, "pnorm", mean(training_data$SalePrice), sd(training_data$SalePrice))
+```
+
+Además también confirmamos con la prueba de Kolmogorov-Smirnov y ambas indican que la distribución de SalesPrice es normal.
+
+Por lo tanto obtenemos la desviación estándar de: `sd(training_data$SalePrice)`.
+
+### ¿Cuáles son los condominios con casas más caras/baratas?
+
+Los condominios con las casa más caras son:
+
+```{r Condominios caros}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+top_houses <- training_data %>%
+  filter(SalePrice >= mean(SalePrice)+3*sd(SalePrice))%>%
+  group_by(Neighborhood)%>%
+  summarize(mean_sale_price = mean(SalePrice))
+
+ggplot(top_houses, aes(x = reorder(Neighborhood, -mean_sale_price), y = mean_sale_price, fill = Neighborhood)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Condominios con las casas mas caras",
+       x = "Condominio",
+       y = "Tipo de Venta") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+El gráfico de arriba nos muestra el promedio por condominio de SalesPrice de las casas cuyo precio es mayor a 3 veces la desviación estándar. Esto nos ayuda a determinar qué condominios son los que contienen las casas más caras.
+
+Los condominios con casas más baratas son:
+
+```{r Condominios baratos}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+top_houses <- training_data %>%
+  filter(SalePrice <= mean(SalePrice)-1.5*sd(SalePrice))%>%
+  group_by(Neighborhood)%>%
+  summarize(mean_sale_price = mean(SalePrice))
+
+ggplot(top_houses, aes(x = reorder(Neighborhood, -mean_sale_price), y = mean_sale_price, fill = Neighborhood)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Condominios con las casas mas baratas",
+       x = "Condominio",
+       y = "Precio de Venta") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Este gráfico funcion de forma similar al anterior, muestra el promedio de SalePrice por condominio de todas las casas cuyo precio es menor o igual a 1.5 desviaciones estándar debajo de la media.
+
+### ¿Cuál es la distribución de los tipos de ventas realizados?
+
+```{r Distribución tipos de ventas}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+top_houses <- count(training_data, SaleType)
+
+ggplot(top_houses, aes(x = reorder(SaleType, -n), y = n, fill = SaleType, label = n)) +
+  geom_bar(stat = "identity") +
+  geom_text(size=3, position=position_stack(vjust = 0.9))+
+  theme_minimal() +
+  labs(title = "Distribucion de los tipos de ventas",
+       x = "Tipo de Venta",
+       y = "# de Ventas") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+La gran mayoría de ventas son del tipo WD (Warranty Deed - Conventional) y por un gran márgen, para poder analizar mejor los datos podemos ver la distribución ignorando el tipo WD:
+
+```{r Distribución tipos de ventas - Ignorando WD}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+top_houses <- count(training_data %>% filter(SaleType !="WD"), SaleType)
+
+ggplot(top_houses, aes(x = reorder(SaleType, -n), y = n, fill = SaleType, label=n)) +
+  geom_bar(stat = "identity") +
+  geom_text(size=3, position=position_stack(vjust = 0.9))+
+  theme_minimal() +
+  labs(title = "Distribucion de los tipos de ventas (Ignora WD)",
+       x = "Tipo de Venta",
+       y = "# de Ventas") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Dentro de los tipos de venta niche: ConLD, ConLI, ConLw, CWD, Oth y Con son masmoenos usadas en la misma frecuencia mientras que New (Home just constructed and sold) es usada con gran dominancia seguida en segundo lugar por COD (Court Officer Deed/Estate).
+
+### ¿Cómo se compara el tamaño de la planta baja con el SalePrice?
+
+```{r Tamaño planta baja VS SalePrice}
+
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+ggplot(training_data, aes(x = X1stFlrSF, y = SalePrice)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_smooth(method = "lm", color = "red", se = TRUE) +
+  theme_minimal() +
+  labs(title = "Relacion entre el tamano de la planta baja y el precio de venta",
+       x = "Tamano de la planta baja (pies cuadrados)",
+       y = "Precio de Venta") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+correlacion <- cor(training_data$X1stFlrSF, training_data$SalePrice, use = "complete.obs")
+```
+
+La gráfica intenta encontrar una relación entre ambas variables sin embargo esta no resulta muy conclusiva ya que solamente tienen una correlación de `correlacion`. La cual indica una relación pero no es determinante.
+
+### ¿El tipo de fundación de la casa afecta su precio?
+
+```{r Tipo de fundación}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+top_houses <- training_data %>%
+  group_by(Foundation)%>%
+  summarize(mean_sale_price = mean(SalePrice))
+
+ggplot(top_houses, aes(x = reorder(Foundation, -mean_sale_price), y = mean_sale_price, fill = Foundation)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Promedio del precio de venta por tipo de fundación",
+       x = "Tipo de Fundacion",
+       y = "AVG de Ventas") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Como se puede ver por el diagrama, si hay una clara relación entre las construcciones realizadas por PConc y a tener un precio de venta más elevado en promedio lo que nos indica que esta variable pordría ser una muy buena predictora del precio de una casa.
+
+### ¿Cuáles son las características más correlacionadas con el precio de venta?
+
+```{r Correlación precio de venta}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+num_vars <- select_if(training_data, is.numeric)
+num_vars <- num_vars %>% select(-Id, -OverallQual, -MSSubClass, -OverallCond)
+cor_matrix <- cor(num_vars, use = "pairwise.complete.obs")
+
+cor_df <- as.data.frame(cor_matrix)
+cor_df$Variable <- rownames(cor_df)
+cor_df <- cor_df %>% filter(Variable != "SalePrice") %>% select(Variable, SalePrice) %>% arrange(desc(SalePrice)) %>% head(6)
+
+ggplot(cor_df, aes(x = reorder(Variable, SalePrice), y = SalePrice)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  ggtitle("Correlación con el precio de venta") +
+  theme_minimal()
+
+```
+
+Se puede ver cuales son las variables que más se correlacionan con el precio de venta. Esto nos inidica cuales son las consideraciones a tomar en cuenta al momento de valuar una propiedad; aumentandolo o decreciendolo, según sea el caso.
+
+### ¿Cómo varia el precio de venta según el vecindario?
+
+```{r vencindario según precio de venta}
+load_data()
+
+library(ggplot2)
+
+ggplot(training_data, aes( x = Neighborhood, y = SalePrice)) + 
+  geom_boxplot(fill = "lightblue") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  ggtitle("Distribución de precios por vecindario")
+```
+
+En el gráfico anterior podemos ver como se distribuye el precio de venta en cada condominio. Se puede ver que hay condominios que tienen una variedad de precios bastante limitada como en los condominios de Blueste o NPlVIII. La presencia de datos atípicos en algunos condominios nos puede indicar que existen casas en esos respectivos condominios que por ciertas razones estan valuadas mejor que el resto. Una mayor variedad de precios de venta indica que el condominio posee casas con distintas condiciones (variables listadas en la pregunta anterior) que hacen variar ese precio.
+
+### ¿Cómo afecta la antigüedad de la vivienda a precio de venta?
+
+```{r Relación antiguedad con precio}
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+oldest_houses <- training_data %>% arrange(YearBuilt) %>% head(10)
+newest_houses <- training_data %>% arrange(desc(YearBuilt)) %>% head(10)
+
+comparison_houses <- rbind(oldest_houses, newest_houses)
+
+ggplot(comparison_houses, aes(x = YearBuilt, y = SalePrice)) +
+  geom_point(alpha = 0.5, color = "blue") +
+  geom_smooth(method = "lm", color = "red") +
+  ggtitle("Relación entre el año de construcción y el precio de venta") +
+  theme_minimal()
+
+```
+
+En este gráfico de dispersión se analiza en precio de las 10 viviendas más antiguas junto con las 10 más nuevas. Cómo se puede apreciar no existe una relación clara entre el precio de venta y la antigüedad de la casa. Implicando que la antigüedad de la casa no influye en su precio de venta.
+
+### ¿Existen patrones estacionales en las ventas de propiedades?
+
+```{r Año y mes con venta}
+load_data()
+
+library(ggplot2)
+
+ggplot(training_data, aes(x = factor(MoSold))) + 
+  geom_bar(fill = "darkgreen") +
+  ggtitle("Cantidad de casas vendidas por mes") +
+  xlab("Mes de venta") +
+  ylab("Cantidad de ventas")
+```
+
+Según se puede ver en la distribución de la cantidad de casas vendidas por mes, se puede ver que la mayor cantidad de casas se vende a lo largo de la mitad del año: Mayo, Junio y Julio. Indicando esto como los mejores meses para poder vender casas.
+
+### ¿Cómo varian las calificaciones de calidad y condición según el tipo de fachada y su material?
+
+```{r calidad y tipo en vivienda}
+
+load_data()
+
+library(ggplot2)
+library(dplyr)
+
+training_data$Exterior1st <- as.factor(training_data$Exterior1st)
+training_data$ExterQual <- as.factor(training_data$ExterQual)
+
+summary_stats <- training_data %>% group_by(Exterior1st, ExterQual) %>%
+  summarise(
+    mean_overallqual = mean(OverallQual, na.rm = TRUE),
+    mean_overallcond = mean(OverallCond, na.rm = TRUE),
+    .groups = 'drop'
+  )
+
+summary_stats
+
+ggplot(summary_stats, aes(x = Exterior1st, y = mean_overallqual, fill = ExterQual)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Calificación de Calidad (OverallQual) según el Tipo de Fachada y Material",
+       x = "Tipo de Fachada (Exterior1st)",
+       y = "Promedio OverallQual") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggplot(summary_stats, aes(x = Exterior1st, y = mean_overallcond, fill = ExterQual)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Calificación de Condición (OverallCond) según el Tipo de Fachada y Material",
+       x = "Tipo de Fachada (Exterior1st)",
+       y = "Promedio OverallCond") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+Se tiene las siguientes clasificaciones para ExterQual: Ex (Excelente, el material es de alta gama), Fa (Justo, la calidad del material es bastante baja), Gd (Bueno, la calidad del material es buena) y TA (Típico/Promedio, el material tiene una condición funcional pero no excepcional). Haciendo un análisis rápido se puede ver que la fachada que presenta las mejores condiciones con respecto a calidad y condición es la "Wd Sdng", se puede ver que existen fachadas que se ven perjudicadas a pesar de usar materiales de alta calidad, inidicando que estas fachadas es mejor abaratar sus costos y hacerlas con materiales que tengan una mejor duración ante la calidad.
+
+### Análisis Exploratorio por Grupos
+
+```{r data preprocessing}
+load_data()
+
+library(dplyr)
+
+cl_data <- select_if(training_data, is.numeric)
+cl_data <- cl_data %>% select(-GarageYrBlt)
+cl_data[is.na(cl_data)] <- 0
+
+```
+
+<!-- Inicialmente, antes de realizar el clustering, lo que vamos a hacer es identificar qué variables sí aportan información al momento de hacer agrupamiento.   -->
+
+Para evitar cualquier tipo de ambigüedades y malinterpretación de los datos, se van a omitir todas las variables cualitativas, ya que no encajan correctamente en el agrupamiento hecho por el clustering.
+
+Con respecto a las variables cuantitativas, solo se va a hacer la omisión de **GarageYrBlt**, debido a que el año en que se construyó el garaje no aporta mucha información al agrupamiento de los datos.
+
+De igual forma, los valores identificados como `NA` se reescribieron como **0**, debido a que este era el valor que representaba ese tipo de datos en las columnas respectivas donde aparecía.
+
+Al final estas son las variables a analizar durante el agrupamiento: **`r colnames(cl_data)`**.
+
+Para determinar si existe una relación entre nuestras variables calculamos el estadístico de Hopkins.
+
+```{r Hopkins}
+
+library(hopkins)
+
+set.seed(123)
+hops <- hopkins(cl_data)
+cat("Estadistico de Hopkins: ", hops, "\n")
+
+
+```
+
+Al obtener 1 como valor de Hopkins, esto demuestra que nuestros datos tiene una fuerte estructura de agrupamiento. Ahora se va a determinar la cantidad óptima de grupos para hacer el agrupamiento.
+
+```{r Método de codo}
+
+library(factoextra)
+
+fviz_nbclust(cl_data, kmeans, method = "wss") + ggtitle("Metodo de Codo")
+```
+
+Viendo el gráfico de codo se refleja que el número óptimo de grupos es de 3. Para el agrupamiento de los datos se va a utilizar K-means. Utilizando K-means obtenemos los siguientes resultados del agrupamiento:
+
+```{r Kmeans and analisis}
+km <- kmeans(cl_data, 3,iter.max =100)
+cl_data$grupo <- as.factor(km$cluster)
+aggregate(cl_data[, -ncol(cl_data)], by = list(cl_data$grupo), FUN = mean)
+
+```
+
+Se puede ver que cada clusters representa lo siguiente: las propiedades de menor tamaño, calidad y precio (grupo 1); las propiedades de tamaño y calidad medios, con precios intermedios (grupo 2); y las propiedades de mayor tamaño, calidad y precio (grupo 3). Este agrupamiento indica un comportamiento esperable en el que el grupo 3 tiene las variables con los valores más altos, al ser las propiedades con mejor calidad y precio. Esto implica que la utilización de una mayor cantidad de recursos hace que aumente tanto el valor de la propiedad como de su calidad. Las variables que más terminan influyendo en esta separación por grupos temrinan siendo aquellas relacionadas con el tamaño y la calidad de la propiedad.
+
+## Ingeniería de Características
+
+Como se pudo ver por el análisis exploratorio realizado con anterioridad salieron varios candidatos para predecir el precio de una casa, sin embargo, una de las variables que tuvo una fuerte correlación con el precio fue el tipo de fundación de la casa, ya que de forma muy consisntente las casas con una fundación PConc (Poured Concrete) tienen un precio más elevado comparado con las Slab o incluso las BrkTil (Brick and Tile).
+
+## Modelos
+
+Primero vamos a realizar un modelo univariad que intenta predecir el precio de venta de la casa usando solamente la variable OveralQual ya que en nuestro análisis exploratorio descubrimos que tiene un alto coeficiente de correlación con el precio de venta:
+
+```{r Modelo Univariado}
+load_data()
+modelo_qual <- lm(SalePrice ~ GrLivArea, data = training_data)
+
+# Resumen del modelo
+summary(modelo_qual)
+
+# Visualización del modelo con ggplot2
+library(ggplot2)
+ggplot(training_data, aes(x = OverallQual, y = SalePrice)) +
+  geom_point(color = "blue", alpha = 0.6) +        # Puntos de dispersión
+  geom_smooth(method = "lm", color = "red", se = TRUE) + # Línea de regresión
+  labs(title = "Modelo Univariado: OverallQual vs SalePrice",
+       x = "Area de vivienda (GrLivArea)",
+       y = "Precio de Venta (SalePrice)") +
+  theme_minimal()
+
+```
+
+Como se puede ver por los datos el modelo realmente solo explica el 50.21% de la variabilidad en el precio, en este caso como solamente usa una variable eso se aplica a GrLivArea. Esto se confirma además con los residuos que son muy amplios, teniendo un 25% de errores en donde se subestimó el precio por \$29,800 o menos y un máximo en donde se subestimó por \$339,832!
+
+Aunque el p-value es mucho menor a 0.05 sabemos que esto no es suficiente puesto que en promedio según el Error estándar residual nuestro modelo se equivoca por \$56,070 mas o menos.
+
+## Regresión para variables numéricas
+
+En este caso la regresión de las variables se va a realizar con las variables cuantitaticas; omitiendo todas la variables cualitativas, aunque tengan una representación numérica. De esta forma obtendremos una regresión lineal lo suficientemente precisa para predecir el precio de las casas.
+
+```{r variable selection}
+
+num_vars <- select_if(training_data, is.numeric)
+num_vars <- num_vars %>% select(-Id, -OverallQual, -MSSubClass, -OverallCond, -GrLivArea, -TotalBsmtSF)
+num_vars[is.na(num_vars)] <- 0
+
+model <- lm(SalePrice ~ ., data = num_vars)
+
+summary(model)
+
+```
+
+En el resumen del modelo realizado se puede ver que la distribución de los residuos presenta un rango amplio (-535822 a 309148), esto indica que el modelo puede tener dificultades para predecir algunos valores extremos. Estos valores de máximo y mínimo implica la presencia de datos atípicos, que es lo que hace que el modelo no prediga a la perfección datos extremos.
+
+Evaluando las variables significativas podemos ver las siguientes: **YearBuilt, YearRemodAdd, MasVnrArea, BsmtFinSF1, BsmtUnfSF, X1stFlrSF, X2ndFlrSF, BedroomAbvGr, KitchenAbvGr, TotRmsAbvGrd, Fireplaces, GarageYrsBlt, GarageCars, WoodDeckSF, ScreenPorch**.
+
+Viendo a profuncdidad las métricas podemos encontrar lo siguiente. El R-cuadrado es 0.7785, significando que el modelo explica aproximadamente el 77.85% de la variabilidad en el precio de venta. Viendo que el R-cuadrado ajustado es ligeramente menor al R-cuadrado, demuestra que hay variables incluidas en el modelo que no estan contribuyendo a la predicción.
+
+Para ver de forma gráfica el modelo de regresión, se hace el gráfico de dispersión entre cada una de las variables predictoras y el precio de venta. A continuación se muestra la relación de las variables significativas encontradas:
+
+```{r model graph}
+
+variables <- c("YearBuilt", "YearRemodAdd", "MasVnrArea", "BsmtFinSF1", "BsmtUnfSF", "X1stFlrSF", 
+               "X2ndFlrSF", "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", 
+               "Fireplaces", "GarageYrBlt", "GarageCars", "WoodDeckSF", "ScreenPorch")
+
+for (var in variables) {
+  print(
+    ggplot(model, aes_string(x = var, y = "SalePrice")) +
+      geom_point(alpha = 0.5, color = "blue") +   # Puntos de dispersión
+      geom_smooth(method = "lm", col = "red") +  # Línea de regresión
+      labs(title = paste("Relación entre", var, "y SalePrice"),
+           x = var, 
+           y = "Precio de Venta (USD)") +
+      theme_minimal()
+  )
+}
+
+
+```
+
+### Multicolinealidad entre variables
+
+```{r Multicolinealidad variables}
+library(corrplot)
+
+datos_num <- num_vars[, c("YearBuilt", "YearRemodAdd", "MasVnrArea", "BsmtFinSF1", "BsmtUnfSF", "X1stFlrSF", 
+               "X2ndFlrSF", "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", 
+               "Fireplaces", "GarageYrBlt", "GarageCars", "WoodDeckSF", "ScreenPorch")]
+
+cor_matrix <- cor(datos_num, use = "pairwise.complete.obs")
+
+corrplot(cor_matrix, method = "color", type = "lower", tl.cex = 0.8, tl.col = "black")
+
+
+```
+
+Analizando el gráifco de correlación se puede busca aquellas variables en donde se encuentre una fuerte intensidad de color azul. Bajo este criterio se tiene multicolinealidad entre las sigueinte variables.
+
+**YearBuilt y YearRemoveAdd**: Existe correlación entre estas variables debido a que mientras más antigua sea la casa, más probable es que se hayan hecho remodelaciones en esta.
+
+**YearBuilt y GarageYrBlt**: Claramente esta correlación indica que al momento de construir la casa se contruyo simultaneamente el garaje.
+
+**TotRmsAbvGrd y GrLivArea**: La correlación positiva existe entre el núemro total de habitaciones sobre el nivel del suelo y el área habitable sobre el nivel del suelo demuestra que las casas más grandes tienden a tener más habitaciones.
+
+**GarageCars y GarageArea**: Para un garaje más ampio, se puede almacenar más carros.
+
+### Identificación de variables de mayor impacto
+
+```{r matriz correlación}
+cor(num_vars)
+```
+
+-   YearBuilt (0.52): El año de construcción de la casa tiene una correlación positiva moderada. Esto sugiere que las casas más nuevas tienden a tener precios más altos.
+-   YearRemodAdd (0.51): El año de la última remodelación también tiene una correlación positiva moderada. Esto indica que las casas remodeladas recientemente tienden a tener precios más altos.
+-   MasVnrArea (0.47): El área de revestimiento de mampostería tiene una correlación positiva moderada. Esto sugiere que las casas con más revestimiento de mampostería tienden a tener precios más altos.
+-   BsmtFinSF1 (0.39): El área de pies cuadrados terminados del sótano de tipo 1 tiene una correlación positiva moderada. Esto indica que los sótanos terminados contribuyen al precio de la casa.
+-   X1stFlrSF (0.61): El área de pies cuadrados del primer piso tiene una correlación positiva fuerte. Esto es lógico, ya que un área de primer piso más grande generalmente significa una casa más grande y, por lo tanto, más cara.
+-   FullBath (0.56): El número de baños completos tiene una correlación positiva moderada. Más baños completos generalmente aumentan el precio de la casa.
+-   TotRmsAbvGrd (0.53): El número total de habitaciones sobre el nivel del suelo tiene una correlación positiva moderada. Más habitaciones generalmente significan una casa más grande y, por lo tanto, más cara.
+-   Fireplaces (0.47): El número de chimeneas tiene una correlación positiva moderada. Las chimeneas son una característica deseable que puede aumentar el precio de la casa.
+-   GarageCars (0.64): El tamaño del garaje en capacidad de automóviles tiene una correlación positiva fuerte. Un garaje más grande generalmente aumenta el precio de la casa.
+-   GarageArea (0.62): El tamaño del garaje en área tiene una correlación positiva fuerte. Similar a GarageCars, un garaje más grande aumenta el precio.
+-   WoodDeckSF (0.32): El área de la terraza de madera tiene una correlación positiva moderada. Las terrazas de madera son una característica deseable que puede aumentar el precio.
+-   OpenPorchSF (0.32): El área del porche abierto tiene una correlación positiva moderada. Similar a la terraza de madera, un porche abierto es una característica deseable.
+
+Habiendo analizado la relación entre variables anteriormente se van a omitir las variables **GarageCars** y **YearRemodAdd**, debido a que estan altamente correlacionadas con **GarageArea** y **YearBuilt** respectivamente.
+
+### Identificar sobreajuste
+
+```{r overfitting}
+
+summary(model)
+
+```
+
+Para identificar si el modelo esta sobreajustado, se puede demostrar comparando los valores de R\^2 y R\^2 ajustado. En este caso se que ve que estos valores no presentan una diferencia significativa entre sí, indicanco que el modelo no se encuentra sobre ajustado.
+
+### Nuevo modelo
+
+Debido a que se encontró multicolianidad entre las variables, se va a reajustar el modelo usando las variables que se encontraron como significativas y omitiendo aquellas que presentaron multicolianidad.
+
+```{r new model}
+
+num_vars <- select_if(training_data, is.numeric)
+num_vars <- num_vars %>% select(YearBuilt, MasVnrArea, BsmtFinSF1, X1stFlrSF, FullBath, TotRmsAbvGrd, Fireplaces, GarageArea, WoodDeckSF, OpenPorchSF, SalePrice)
+num_vars[is.na(num_vars)] <- 0
+
+new_model <- lm(SalePrice ~ ., data = num_vars)
+
+summary(new_model)
+
+```
+
+Los residuos del modelo muestran una alta dispersión, con errores que varían desde -479296 hasta 373149, lo que indica que el modelo no es igualmente preciso para todas las predicciones. Aunque la mediana de los residuos está cerca de cero (-2134), lo que sugiere poco sesgo general, la amplia dispersión y la presencia de valores atípicos (outliers) indican que el modelo tiene margen de mejora.
+
+```{r graph new model}
+plot(new_model$fitted.values, new_model$residuals,
+     xlab = "Valores Ajustados",
+     ylab = "Residuos",
+     main = "Residuos vs. Valores Ajustados")
+abline(h = 0, col = "red") # Línea horizontal en cero
+
+```
+
+El gráfico muestra que los errores del modelo se distribuyen bastante bien alrededor de cero, lo que sugiere que el modelo generalmente hace predicciones equilibradas. Sin embargo, los errores tienden a dispersarse más a medida que las predicciones del modelo aumentan, lo que indica que el modelo podría ser menos preciso para las predicciones más altas. Además, hay algunos errores muy grandes, tanto positivos como negativos, lo que sugiere que el modelo tiene dificultades para predecir con precisión algunos valores extremos.
+
+## Comparativa de los modelos
+
+Ahora vamos a utilizar ambos modelos con los datos de prueba y comparar las respuestas de ambos:
+
+```{r Comparativa de los modelos}
+load_data()
+
+num_vars <- select_if(training_data, is.numeric)
+num_vars <- num_vars %>% select(YearBuilt, MasVnrArea, BsmtFinSF1, X1stFlrSF, FullBath, TotRmsAbvGrd, Fireplaces, GarageArea, WoodDeckSF, OpenPorchSF, SalePrice)
+num_vars[is.na(num_vars)] <- 0
+
+new_model <- lm(SalePrice ~ ., data = num_vars)
+
+
+num_vars <- select_if(test_data, is.numeric)
+num_vars <- num_vars %>% select(YearBuilt, MasVnrArea, BsmtFinSF1, X1stFlrSF, FullBath, TotRmsAbvGrd, Fireplaces, GarageArea, WoodDeckSF, OpenPorchSF)
+num_vars[is.na(num_vars)] <- 0
+
+modelo_qual <- lm(SalePrice ~ GrLivArea, data = training_data)
+
+num_vars$MultPredicted <- predict(new_model, num_vars)
+num_vars$SinglePredicted <- predict(modelo_qual, test_data)
+
+summary(modelo_qual)
+summary(new_model)
+
+anova(modelo_qual, new_model)
+```
+
+Como podemos ver por el resumen de ambos modelos, el modelo que utiliza varias variables explica un 69% de la variabilidad de los datos mientras que el de una sola variable apenas el 50% (casi igual que tirar una moneda). Realizando la prueba de ANOVA ambos modelos tienen el mismo valor p, lo que nos dice que aunque explica más de la variabilidad de las variables realmente no es un modelo que tenga más significancia.
+
+## Conclusiones
+
+Las siguientes gráficas nos muestran las distribuciones de la variable SalePrice predichas por ambos modelos:
+
+```{r Conclusiones}
+hist(num_vars$SinglePredicted, main = "Distribución de SalePrice de acuerdo al modelo de una sola variable")
+hist(num_vars$MultPredicted, main = "Distribución de SalePrice de acuerdo al modelo de varias variables")
+```
+
+Como se puede ver por los histogramas ambas variables predichas siguen una distribución normal.
+
+En conclusión, ambos modelos son malos para predecir el precio de las casas (alcanzando a lo mucho un 69% de variabilidad explicada), lo que nos dice que no siempre solo con tener más variables tendremos un modelo que prediga mejor los datos sino que es importante considerar también la significancia que tienen estos con la variable objetivo y encontrar datos que realmente se correlaciones de forma fuerte con la variable objetivo.
+
+Con respecto a este estudio nuestras recomendaciones es buscar nuevas fuentes de información si se desea tener un modelo con mayor accuracy de predicción.
+
+# Modelado de Bayes
+
+```{r setup bayes, echo=FALSE}
+load_data <- function(){
+  training_data <- read.csv("data/train.csv")
+  test_data <- read.csv("data/test.csv")
+}
+
+training_data <- read.csv("data/train.csv")
+training_data_sorted <- training_data[order(training_data$SalePrice, decreasing = TRUE),]
+```
+
+Debido al modelado de Bayes tenemos que discretizar la variable objetivo, en nuestro caso es SalePrice. La vamos a dividir en 4 categorìas: LOW, SEMI, MEDIUM, HIGH
+
+Primero vamos a dividir el dataset the entrenamiento en 2 grupos, uno de entrenamiento con el 70% de los datos y otro de validación con el 30% de los datos.
+
+```{r Naïve Bayes}
+library(e1071)  # For Naïve Bayes
+library(dplyr)
+library(caret)  # For data splitting
+library(glmnet)
+
+load_data()
+
+# Define price categories (Low, Medium, High) using quantiles
+training_data$SalePriceCategory <- cut(training_data$SalePrice, 
+                            breaks = quantile(training_data$SalePrice, probs = c(0, 0.33, 0.66, 1), na.rm = TRUE), 
+                            labels = c("Barata", "Media", "Cara"), 
+                            include.lowest = TRUE)
+
+df <- training_data %>% select(-SalePrice, -Id)  # Remove ID and continuous SalePrice
+
+df <- df %>% mutate_if(is.character, as.factor)
+
+set.seed(42)
+train_index <- createDataPartition(training_data$SalePriceCategory, p = 0.7, list = FALSE)
+train_data <- df[train_index, ]
+test_data <- df[-train_index, ]
+
+nb_model <- naiveBayes(SalePriceCategory ~ ., data = train_data)
+
+predictions <- predict(nb_model, test_data)
+
+conf_matrix <- confusionMatrix(predictions, test_data$SalePriceCategory)
+print(conf_matrix)
+```
+
+Para predecir la variable de SalePrice el modelo tuvo un *Accuracy* del 70%, lo que significa que sí ha encontrado patrones que implican un valor de venta mayor/menor. Comparando este modelo con los otros realizados con anterioridad el que mejor lo ha realizado hasta ahora es el de naïve Bayes aunque por muy poco, puesto que apenas superó por 1% al modelo de árboles de regresión.
+
+Como se puede ver por la matriz de confusión la clase en la que más errores tuvo fue la clase barata, puesto que de todos los valores clasificados en "Barato" solamente el 65% fueron clasificados de forma correcta. La segunda categoría con más errores fue la media con el 67% clasificados de forma correcta y finalmente la Cara con 80%.
+
+Es posible que esto se deba a los puntos atípicos del dataset se parte del precio de las casas, por lo que si quitamos las 2 casas con precio mayor tenemos:
+
+```{r Naïve Bayes - Sin puntos atípicos}
+library(e1071)  # For Naïve Bayes
+library(dplyr)
+library(caret)  # For data splitting
+
+library(ggplot2)
+
+load_data()
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+upper_limit <- mean_price + (4 * sd_price)
+
+ggplot(training_data, aes(x = SalePrice)) +
+  geom_histogram(aes(y = ..density..), binwidth = 10000, fill = "blue", color = "black", alpha = 0.7) +
+  geom_density(color = "red", size = 1.2) +
+  geom_vline(xintercept = upper_limit, color = "purple")+
+  geom_vline(xintercept = mean(training_data$SalePrice), color = "green")+
+  theme_minimal() +
+  labs(title = "Distribution of House Sale Prices with Density Curve",
+       x = "Sale Price",
+       y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+filtered_training_data <- training_data %>% filter(SalePrice <= upper_limit)
+
+# Define price categories (Low, Medium, High) using quantiles
+filtered_training_data$SalePriceCategory <- cut(filtered_training_data$SalePrice, 
+                            breaks = quantile(filtered_training_data$SalePrice, probs = c(0, 0.33, 0.66, 1), na.rm = TRUE), 
+                            labels = c("Barata", "Media", "Cara"),
+                            include.lowest = TRUE)
+
+df <- filtered_training_data %>% select(-SalePrice, -Id)  # Remove ID and continuous SalePrice
+
+df <- df %>% mutate_if(is.character, as.factor)
+
+set.seed(42)
+train_index <- createDataPartition(filtered_training_data$SalePriceCategory, p = 0.7, list = FALSE)
+train_data <- df[train_index, ]
+test_data <- df[-train_index, ]
+
+nb_model <- naiveBayes(SalePriceCategory ~ ., data = filtered_training_data)
+
+predictions <- predict(nb_model, test_data)
+
+conf_matrix <- confusionMatrix(predictions, test_data$SalePriceCategory)
+print(conf_matrix)
+```
+
+Después de probar varias iteraciones se obtuvo la mejor cantidad de resultados removiendo los puntos atípicos, en donde atípicos significa "Tienen un precio mayor a la media + 4 veces la desviación estándar". Como se puede ver el *Accuracy* del modelo tuvo una ligera mejora (ascendió a 73%) y la eficiencia del modelo también aumentó levemente como se ve por la matriz de confusión.
+
+Viendo los resultados de la matriz de confusión y las métricas de precisión, se puede notar que tiene sobreajuste. Este modelo clasifica con una sensibilidad del 96.46% y 82.16% a las casas Baratas y Caras respectivamente. Sin embargo, la clasificación de las casas Medias es del 39.88%, lo que sugiere que el modelo ha aprendido demasiado los patrones de cuertas clases y no generaliza bien.
+
+```{r NV Cross Validation}
+# 
+tu_datos <- df %>% mutate_if(is.character, as.factor)
+X <- tu_datos[, -which(names(tu_datos) == "SalePriceCategory")]
+y <- tu_datos$SalePriceCategory
+
+train_control <- trainControl(method = "cv", number = 10)
+modelo_nb_cv <- suppressWarnings(train(x = X, y = y, method = "naive_bayes", trControl = train_control))
+
+predicciones <- suppressWarnings(predict(modelo_nb_cv, newdata = test_data))
+suppressWarnings(confusionMatrix(predicciones, test_data$SalePriceCategory))
+```
+
+Con este nuevo modelo generado mediante validación cruzada podemos ver una mejora en la *Accuracy* del modelo. Ahora vemos que el modelo tiene un porcentaje de accuracy del 77% siendo mayor que los modelos anteriores de Naive Bayes.
+
+Ahora evaluaremos con diferentes hiperparámetros los modelos de clasificación y regresión.
+
+```{r Hiperparámetros}
+
+library(DMwR2)  # Para la imputación de valores faltantes
+
+filtered_training_data <- centralImputation(filtered_training_data)
+# Definir la cuadrícula de hiperparámetros para el ajuste
+tune_grid <- expand.grid(laplace = c(0, 0.5, 1, 2),
+                        usekernel = c(TRUE, FALSE),
+                        adjust = c(1, 1.5, 2))
+
+# Aplicar ajuste de hiperparámetros usando el método de validación cruzada
+train_control <- trainControl(method = "cv", number = 10)
+
+# Ajuste del modelo de Naive Bayes
+modelo_nb_tune <- train(SalePriceCategory ~ ., data = filtered_training_data, 
+                        method = "naive_bayes", 
+                        trControl = train_control, 
+                        tuneGrid = tune_grid)
+
+# Usar el mejor modelo del ajuste para hacer predicciones
+best_model <- modelo_nb_tune$finalModel
+predictions <- predict(best_model, newdata = test_data)
+
+# Evaluar el rendimiento del modelo ajustado
+conf_matrix <- confusionMatrix(predictions, test_data$SalePriceCategory)
+print(conf_matrix)
+
+```
+
+El modelo de Naive Bayes no mejoró significativamente debido a varios fcatores. La matriz de confusión muestra que el modelo tiene un buen desempeño al clasificar casas baratas pero tiene dificultades para las "Medias" y "Caras". Esto se debe al desbalanceo en la distribución de clases, favoreciendo las clases más comunes. El desempeño general del modelo, con precisión del 63%, está afectado por la suposición de independencia de caracterpisticas que Naive Bayes hace, ya que puede haber interacciones entre las caracteristicas que el modelo no está capturando.
+
+Viendo el *Accuracy* del árbol de decisión y el random forest, se obtuvo que su accuracy era de 90% y 91%. Esto contrasta con lo obtenido con Naive Bayes viendo que su capacidad de predicción es peor que la de un random forest. Incluso viendo el tiempo de ejecución, se ve que el random forest se tarda menos en procesar, teniendo actualmente una diferencia de procesamiento de 5s aproximadamente.
+
+# Árboles de Decisión
+
+```{r setup arboles de decision, include=FALSE}
+load_data <- function(){
+  training_data <- read.csv("data/train.csv")
+  test_data <- read.csv("data/test.csv")
+}
+
+training_data <- read.csv("data/train.csv")
+test_data <- read.csv("data/test.csv")
+```
+
+## Árbol multivariable
+
+```{r Arbol multivariable}
+# install.packages("rpart")       # Árboles de regresión
+# install.packages("rpart.plot")  # Gráfico bonito del árbol
+
+# Cargar librerías
+library(rpart)
+library(rpart.plot)
+
+load_data()
+
+# Crear el árbol de regresión
+modelo_arbol <- rpart(SalePrice ~ ., data = training_data)
+
+# Ver el resumen del árbol
+summary(modelo_arbol)
+
+# Gráfico simple
+rpart.plot(modelo_arbol, type = 3, extra = 101, fallen.leaves = TRUE, cex = 0.7, main = "arbol de Regresion para SalePrice")
+
+```
+
+Ahora vamos a medir la precisión del modelo:
+
+```{r Medir la precisión}
+predicciones <- predict(modelo_arbol, training_data)
+
+SSE <- sum((training_data$SalePrice - predicciones)^2)
+SST <- sum((training_data$SalePrice - mean(training_data$SalePrice))^2)
+R2 <- 1 - (SSE / SST)
+cat("R-squared:", R2, "\n")
+
+RMSE <- sqrt(mean((training_data$SalePrice - predicciones)^2))
+cat("RMSE:", RMSE)
+
+```
+
+Este modelo predice la data con un 76% de variabilidad, además su RMSE es de 38 mil dólares lo cual sigue siendo alto aunque más bajo que el de los lineales.
+
+## Árboles de varios niveles
+
+Ahora vamos a generar árboles con varios niveles de profundidad:
+
+```{r Arboles de varios niveles}
+# Cargar librerías
+library(rpart)
+library(rpart.plot)
+
+load_data()
+
+# Crear el árbol de regresión
+arbol_2 <- rpart(SalePrice ~ ., data = training_data, control = rpart.control(maxdepth = 2))
+arbol_3 <- rpart(SalePrice ~ ., data = training_data, control = rpart.control(maxdepth = 3))
+arbol_8 <- rpart(SalePrice ~ ., data = training_data, control = rpart.control(maxdepth = 8))
+
+# Ver el resumen del árbol
+summary(modelo_arbol)
+
+# Gráfico simple
+rpart.plot(arbol_2, type = 3, extra = 101, fallen.leaves = TRUE, cex = 0.7, main = "arbol de Decision para SalePrice")
+rpart.plot(arbol_3, type = 3, extra = 101, fallen.leaves = TRUE, cex = 0.7, main = "arbol de Decision para SalePrice")
+rpart.plot(arbol_8, type = 3, extra = 101, fallen.leaves = TRUE, cex = 0.7, main = "arbol de Decision para SalePrice")
+```
+
+y para ver cuál es mejor lo comparamos con la data de entrenamiento:
+
+```{r}
+
+pre_tree <- function(tree, data, prefix) {
+
+predicciones <- predict(modelo_arbol, training_data)
+
+SSE <- sum((training_data$SalePrice - predicciones)^2)
+SST <- sum((training_data$SalePrice - mean(training_data$SalePrice))^2)
+R2 <- 1 - (SSE / SST)
+cat(prefix, "\n")
+cat("R-squared:", R2, "\n")
+
+RMSE <- sqrt(mean((training_data$SalePrice - predicciones)^2))
+cat("RMSE:", RMSE, "\n")
+}
+
+pre_tree(arbol_2, training_data, "Árbol de 2 Niveles")
+pre_tree(arbol_3, training_data, "Árbol de 3 Niveles")
+pre_tree(arbol_8, training_data, "Árbol de 8 Niveles")
+```
+
+Cómo se puede ver, todos los árboles predicen de igual forma los datos, incluso el que solamente tiene 2 niveles!
+
+Los resultados del modelo de regresión lineal del ejercicio pasado solamente predicen a lo sumo el 69% de los datos, lo cual me dice que es menos preciso que los modelos de árboles de decisión, los cuáles predicen un 76.5% de los datos.
+
+## Clasificación en 3 variables
+
+Según el histograma de los datos, estos se encuentran altamente sesgados hacia la derecha:
+
+```{r Histograma de SalesPrice}
+library(ggplot2)
+
+load_data()
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir los límites
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+ggplot(training_data, aes(x = SalePrice)) +
+  geom_histogram(aes(y = ..density..), binwidth = 10000, fill = "blue", color = "black", alpha = 0.7) +
+  geom_density(color = "red", size = 1.2) +
+  geom_vline(xintercept = upper_limit, color = "purple")+
+  geom_vline(xintercept = lower_limit, color = "purple")+
+  geom_vline(xintercept = mean(training_data$SalePrice), color = "green")+
+  theme_minimal() +
+  labs(title = "Distribution of House Sale Prices with Density Curve",
+       x = "Sale Price",
+       y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Como la distribución sí es normal entonces si podemos realizar las divisiones dependiendo de las desviaciones estándar. Por lo que definiremos las categorías como:
+
+-   Baratas: Todas las casas menores a media - 1.5 desviaciones estándar en valor.
+-   Medianas: Todas las casas entre media+- 1.5 desviaciones estándar en valor.
+-   Caras: Todas las casas mayores a media + 1.5 desviaciones estándar en valor.
+
+## Árbol de Clasificación
+
+```{r}
+# Cargar librerías
+library(rpart)       # Árboles de clasificación
+library(rpart.plot)  # Visualización de árboles
+
+# Crear la variable de clasificación
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                           ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+training_data$Category <- as.factor(training_data$Category)
+
+# Revisamos la distribución
+# table(training_data$Category)
+
+modelo_arbol <- rpart(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt, 
+                      data = training_data, 
+                      method = "class", # Método de clasificación
+                      control = rpart.control(minsplit = 30, cp = 0.01))
+
+# Visualizamos el modelo
+rpart.plot(modelo_arbol, type = 5, extra = 104, fallen.leaves = TRUE, cex = 0.8, box.palette = "RdYlGn")
+```
+
+## Eficiencia del modelo
+
+```{r model efficiency}
+
+probabilidades <- predict(modelo_arbol, test_data, type = "prob")
+
+prod_confidence <- mean(apply(probabilidades, 1, max))
+
+cat("Eficiencia del modelo:",prod_confidence)
+
+```
+
+A continuación podemos la eficiencia del modelo creado anteriormente. Obtenemos que su eficiencia de rpedicción es del 92%; superando el nivel de predición de los modelos de regresión.
+
+## Matriz de confusión del modelo de clasificación
+
+Acontinuación se muestra la matriz de confusión del modelo:
+
+```{r confusion matrix modelo clasificacion}
+predicciones <- predict(modelo_arbol, test_data, type = "class")
+
+confusion_matrix <- table(Predicho = predicciones, Real = training_data$Category[-1])
+
+confusion_matrix
+
+```
+
+Podemos ver que el modelo presenta problemas acertando la clasificación de casas baratas y caras. Podemos ver la aparición de falsos negativos, viendo que las clases reales fueron mal clasificadas con otra clase. La presencia de estos falsos negativos y falsos positivos indican que el modelo no es preciso al 100%, demostrando que presenta una mejor predicción para el tipo de casa mediana.
+
+## Modelo con validación cruzada
+
+Ahora vamos a crear un nuevo modelo ahora utilizando la validación cruzada.
+
+```{r}
+library(rpart)
+library(caret)
+
+set.seed(123)
+splitIndex <- createDataPartition(training_data$Category, p = 0.8, list = FALSE)
+train_data <- training_data[splitIndex, ]
+test_data <- training_data[-splitIndex, ]
+train_control <- trainControl(method = "cv", number = 10)
+
+modelo_tree_cv <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                        data = train_data,
+                        method = "rpart",
+                        trControl = train_control,
+                        tuneLength = 10)
+
+predicciones <- predict(modelo_tree_cv, newdata = test_data)
+
+confusionMatrix(predicciones, test_data$Category)
+
+```
+
+Con este nuevo modelo podemos ver una mejora significativa en comparación con el modelo anterior. Ahora en la matriz de confusión podemos notar una menor presencia de falsos negativos y falsos positivos.
+
+```{r different tree models}
+
+library(caret)
+library(rpart)
+library(rpart.plot)
+
+train_control <- trainControl(method = "cv", number = 10)
+set.seed(123)
+
+#Modelo con profundidad 3
+modelo_3 <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                  data = training_data,
+                  method = "rpart",
+                  trControl = train_control,
+                  tuneGrid = expand.grid(cp = 0.01),
+                  control = rpart.control(maxdepth = 3))
+
+#Modelo con profundidad 5
+modelo_5 <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                  data = training_data,
+                  method = "rpart",
+                  trControl = train_control,
+                  tuneGrid = expand.grid(cp = 0.01),
+                  control = rpart.control(maxdepth = 5))
+
+#Modelo con profundidad 7
+modelo_7 <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                  data = training_data,
+                  method = "rpart",
+                  trControl = train_control,
+                  tuneGrid = expand.grid(cp = 0.01),
+                  control = rpart.control(maxdepth = 7))
+
+# Precisión de los modelos
+acc_3 <- max(modelo_3$results$Accuracy)
+acc_5 <- max(modelo_5$results$Accuracy)
+acc_7 <- max(modelo_7$results$Accuracy)
+
+data.frame(Profundidad = c(3, 5, 7),
+                         Accuracy = c(acc_3, acc_5, acc_7))
+```
+
+Se crearan modelos con 3, 5 y 7 niveles de profundidad. Viendo la precisión de cada uno de estos árboles podemos ver que el mejor de los 3 modelos es aquel que tiene 7 niveles, esto demuestra que a mayor profundidad, se tiene una mejor clasificación.
+
+## Random Forest
+
+```{r Random Fores}
+library(caret)
+library(randomForest)
+library(ggplot2)
+
+train_control <- trainControl(method = "cv", number = 10)
+
+set.seed(123)
+modelo_rf <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                   data = training_data,
+                   method = "rf",
+                   trControl = train_control,
+                   tuneLength = 3)
+acc_rf <- max(modelo_rf$results$Accuracy)
+acc_tree <- max(modelo_7$results$Accuracy)
+
+data.frame(Modelo = c("Árbol de Decisión", "Random Forest"),
+                          Accuracy = c(acc_tree, acc_rf))
+```
+
+Podemos ver que los random forest presentan una mayor precisión con respecto a los árboles de decisión. Es importante destacar también que la creación de los random forest es mayor a la de los árboles de decisión entonces, viendo que la precisión en este caso no fue muy alta. Lo demuestra que se debe de tomar la decisión entre querer una mejor precisión o una mejor eficiencia algoritmica.
+
+# Modelo de Regresión Logística
+
+```{r setup regresion logistica, include=FALSE}
+library(class)
+library(caret)
+library(dplyr)
+library(Metrics)
+library(profvis)
+randomSeed <- 123
+
+# Cargar datos
+training_data <- read.csv("data/train.csv")
+
+# Reemplazar valores NA con 0
+training_data[is.na(training_data)] <- 0
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir los límites
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+# Crear la variable de clasificación
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                                ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+training_data <- training_data %>%
+  mutate(
+    EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
+    EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
+    EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
+  )
+
+training_data$Category <- as.factor(training_data$Category)
+
+predictors <- training_data %>% select(-Category)
+response <- training_data$Category
+
+# Normalización (Estandarización Z-score)
+preProc <- preProcess(predictors, method = c("center", "scale"))
+predictors_scaled <- predict(preProc, predictors)
+
+# Combinar las predictoras escaladas con la variable de respuesta
+scaled_data <- cbind(predictors_scaled, Category = response)
+scaled_data <- as.data.frame(scaled_data) # Convertir a data.frame
+
+# Semilla para reproducibilidad
+set.seed(randomSeed)
+
+# Separar datos en entrenamiento (70%) y verificación (30%)
+train_indices <- createDataPartition(scaled_data$Category, p = 0.7, list = FALSE)
+
+train_data <- scaled_data[train_indices, ]
+test_data <- scaled_data[-train_indices, ]
+```
+
+Debido a que ya tenemos los datos por las entregas anteriores procedemos a elaborar un modelo de regresión logística para la variable "EsCara" utilizando validación cruzada.
+
+```{r Modelo de Regresión Logística}
+# install.packages("caret")
+# install.packages("e1071")  # requerido por caret para modelos SVM y otros
+
+library(caret)
+library(e1071)
+
+set.seed(randomSeed)  # Para reproducibilidad
+
+control <- trainControl(method = "cv",    # cross-validation
+                        number = 10,      # número de folds
+                        classProbs = TRUE,  # para clasificación
+                        summaryFunction = twoClassSummary)  # para métricas como ROC
+
+# Puedes cambiar a Accuracy, Sensitivity, etc.
+#modeloBarata <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+#modeloMediana <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+modeloCara <- train(EsCara ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+                   data = train_data,
+                   method = "glm",
+                   family = "binomial",
+                   trControl = control,
+                   metric = "Accuracy")
+
+#print("Modelo de EsBarata")
+#print(modeloBarata)
+
+#print("Modelo de EsMediana")
+#print(modeloMediana)
+
+print("Modelo de EsCara")
+summary(modeloCara)
+```
+
+Analizando los coeficientes podemos ver que varias de las variables utilizadas tienen un p-value menor a 0.05, pero no son todas, LotArea y YearBuilt tienen un p value demasiado elevado, lo que me lleva a pensar que realmente no necesariamente se correlacionan con el precio de la vivienda.
+
+Utilizando el modelo con el conjunto de verificación podemos ver que:
+
+```{r Validación del Modelo}
+predicciones <- predict(modeloCara, newdata = test_data)
+
+# Convertir a clases (0 o 1) usando un umbral (por ejemplo, 0.5)
+# predicciones <- ifelse(probabilidades > 0.5, 1, 0)
+confusionMatrix(as.factor(predicciones), as.factor(test_data$EsCara))
+
+```
+
+Viendo los resultados del modelo, podemos ver que aunque el "Accuracy" es muy alto, realmente el modelo es medio malo, ya que nuestro Balanced Accuracy apenas llega a 77%, esto se debe a que realmente la cantidad de casas que cumplen nuestra definición de "cara" es extremadamente alta (2 desviaciónes estándar por encima de la media). Por lo tanto tenemos que balancear la muestra para que el modelo pueda aprender características sobre este conjunto de datos reducido.
+
+```{r Modelo modificado}
+
+# install.packages("ROSE")
+library(ROSE)
+
+# Cargar datos
+training_data <- read.csv("data/train.csv")
+
+# Reemplazar valores NA con 0
+training_data[is.na(training_data)] <- 0
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir los límites
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+
+# Crear la variable de clasificación
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                           ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+training_data <- training_data %>%
+  mutate(
+    EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
+    EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
+    EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
+  )
+training_data$Category <- as.factor(training_data$Category)
+balanced_data <- ROSE(EsCara ~   OverallQual  + GarageCars + GrLivArea + Category, data = training_data)$data
+
+predictors <- balanced_data %>% select(-Category)
+response <- balanced_data$Category
+
+# Normalización (Estandarización Z-score)
+preProc <- preProcess(predictors, method = c("center", "scale"))
+predictors_scaled <- predict(preProc, predictors)
+
+# Semilla para reproducibilidad
+set.seed(randomSeed) 
+
+# Separar datos en entrenamiento (70%) y verificación (30%)
+train_indices <- createDataPartition(response, p = 0.7, list = FALSE)
+
+train_data <- predictors_scaled[train_indices, ]
+test_data <- predictors_scaled[-train_indices, ]
+
+library(caret)
+library(e1071)
+
+set.seed(randomSeed)  # Para reproducibilidad
+
+control <- trainControl(method = "cv",    # cross-validation
+                        number = 10,      # número de folds
+                        classProbs = TRUE,  # para clasificación
+                        summaryFunction = twoClassSummary)  # para métricas como ROC
+
+# Puedes cambiar a Accuracy, Sensitivity, etc.
+#modeloBarata <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+#modeloMediana <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+modeloMejoradoCara <- train(EsCara ~ OverallQual  + GarageCars + GrLivArea,
+                   data = train_data,
+                   method = "glm",
+                   family = "binomial",
+                   trControl = control,
+                   metric = "Precision-Recall AUC")
+
+#print("Modelo de EsBarata")
+#print(modeloBarata)
+
+#print("Modelo de EsMediana")
+#print(modeloMediana)
+
+print("Modelo de EsCara")
+
+predicciones <- predict(modeloMejoradoCara, newdata = test_data)
+
+# Convertir a clases (0 o 1) usando un umbral (por ejemplo, 0.5)
+# predicciones <- ifelse(probabilidades > 0.5, 1, 0)
+confusionMatrix(as.factor(predicciones), as.factor(test_data$EsCara))
+```
+
+¡Podemos ver que este modelo se comporta de una manera mucho mejor al anterior! Aunque el accuracy normal disminuyó considerablemente el accuracy balanceado aumentó a 92%! Esto se debe principalmente a que nuestro modelo ya es capaz de identificar muchas más casas que sí son consideradas caras, pueso que las incluimos más seguido dentro del dataset.
+
+## Análisis de Overfitting/Underfitting
+
+¡Para analizar el overfitting/underfitting del modelo necesitamos evaluarlo con los datos de entrenamiento y comparar sus resultados con respecto a los datos de verificación!
+
+```{r Análisis de Overfitting}
+library(plotly)
+
+print("Usando data de entrenamiento")
+predicciones <- predict(modeloMejoradoCara, newdata = train_data)
+
+# Convertir a clases (0 o 1) usando un umbral (por ejemplo, 0.5)
+# predicciones <- ifelse(probabilidades > 0.5, 1, 0)
+# confusionMatrix(as.factor(predicciones), as.factor(train_data$EsCara))
+
+
+curva <- learning_curve_dat(dat = train_data,
+                            outcome = "EsCara",
+                            proportion = seq(0.1, 1.0, by = 0.1),
+                            test_prop = 0.3,
+                            method = "glm",
+                            metric = "Accuracy",
+                            family = "binomial")
+
+# Graficar la curva de aprendizaje
+ggplotly(
+  ggplot(curva, aes(x = Training_Size, y = Accuracy, color = Data)) +
+  geom_smooth(se = FALSE) +
+  labs(title = "Curva de Aprendizaje - Regresión Logística",
+       y = "Accuracy", x = "Tamaño del conjunto de entrenamiento")
+)
+```
+
+Como podemos ver, las curvas tanto de validación como de entrenamiento se siguen muy cercanamente en los rangos cercanos a 300 datos y de 500 en adelante. En el final, aunque no convergen se puede ver que sí se encuentran muy cercanos entre sí por lo tanto no hay Overfitting. Tampoco creemos que haya underfitting, puesto que aunque sí están juntas la mayoría del tiempo, el valor de accuracy es demasiado alto (mayor a 94%). Por lo que consideramos que el modelo realmente sí aprendió de forma correcta luego de aplicarle un resampling a los datos de entrada para que no tuviera despreciara minorías.
+
+## Eficiencia del modelo
+
+Es importante determinar como podemos mejorar nuestro modelo y esto se puede hacer modificando los hiperparametros usados. En la implementación actual del modelo de regresión logística utilizando el método "glm" dentro de la función **train** de la librería **caret**, no se puede realizar ajustes automáticos de hiperparámetros. Esto se debe a que la función **glm** en R, implementa la regresión logísitca estándar, no posee hiperparámetros intrínsecos que puedan ser optimizados.
+
+En este caso el único "tunning" que se podría hacer es volver a realizar la ingeniería de caractrísticas y cambiar la selección de las variables predictoras pero esto involucraría cambiar el resto de los modelos que se hicieron en entregas anteriores por lo que no se procedera con este método y se dejara el tunning estandar que ofrece el modelo.
+
+```{r model eficiency}
+# install.packages("ROSE")
+library(ROSE)
+
+# Cargar datos
+training_data <- read.csv("data/train.csv")
+
+# Reemplazar valores NA con 0
+training_data[is.na(training_data)] <- 0
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir los límites
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+
+# Crear la variable de clasificación
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                           ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+training_data <- training_data %>%
+  mutate(
+    EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
+    EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
+    EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
+  )
+training_data$Category <- as.factor(training_data$Category)
+balanced_data <- ROSE(EsCara ~   OverallQual  + GarageCars + GrLivArea + Category, data = training_data)$data
+
+predictors <- balanced_data %>% select(-Category)
+response <- balanced_data$Category
+
+# Normalización (Estandarización Z-score)
+preProc <- preProcess(predictors, method = c("center", "scale"))
+predictors_scaled <- predict(preProc, predictors)
+
+# Semilla para reproducibilidad
+set.seed(randomSeed) 
+
+# Separar datos en entrenamiento (70%) y verificación (30%)
+train_indices <- createDataPartition(response, p = 0.7, list = FALSE)
+
+train_data <- predictors_scaled[train_indices, ]
+test_data <- predictors_scaled[-train_indices, ]
+
+library(caret)
+library(e1071)
+
+set.seed(randomSeed)  # Para reproducibilidad
+
+control <- trainControl(method = "cv",    # cross-validation
+                        number = 10,      # número de folds
+                        classProbs = TRUE,  # para clasificación
+                        summaryFunction = twoClassSummary)  # para métricas como ROC
+
+# Puedes cambiar a Accuracy, Sensitivity, etc.
+#modeloBarata <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+#modeloMediana <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+#                   data = train_data,
+#                   method = "glm",
+#                   family = "binomial",
+#                   trControl = control,
+#                   metric = "ROC")
+modeloMejoradoCara <- train(EsCara ~ OverallQual  + GarageCars + GrLivArea,
+                   data = train_data,
+                   method = "glm",
+                   family = "binomial",
+                   trControl = control,
+                   metric = "Precision-Recall AUC")
+
+#print("Modelo de EsBarata")
+#print(modeloBarata)
+
+#print("Modelo de EsMediana")
+#print(modeloMediana)
+
+print("Modelo de EsCara")
+
+predicciones <- predict(modeloMejoradoCara, newdata = test_data)
+
+# Convertir a clases (0 o 1) usando un umbral (por ejemplo, 0.5)
+# predicciones <- ifelse(probabilidades > 0.5, 1, 0)
+confusionMatrix(as.factor(predicciones), as.factor(test_data$EsCara))
+```
+
+Viendo la matriz de confusión obtenida vemos que estamos obteniendo más errores al predecir que una casa es cara, teniendo 22 casos (falsos negativos) que las casas si eran caras pero las clasifico como "No". Luego vemos que que hubo 10 casos (falsos positivos) que fueron mal clasificados. Entendemos que estos errores implican en que se afecta en la eficiencia de las ventas demostrando posibles falsos datos a los compradores haciendo que exista posibles pérdidas en las oportunidades de venta.
+
+```{r time}
+profvis({
+  # Cargar datos
+  training_data <- read.csv("data/train.csv")
+
+  # Reemplazar valores NA con 0
+  training_data[is.na(training_data)] <- 0
+
+  mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+  sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+  # Definir los límites
+  lower_limit <- mean_price - (1 * sd_price)
+  upper_limit <- mean_price + (2 * sd_price)
+
+
+  # Crear la variable de clasificación
+  training_data <- training_data %>%
+    mutate(
+      EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
+      EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
+      EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
+    )
+  training_data$Category <- as.factor(ifelse(training_data$EsCara == "Sí", "Cara",
+                                             ifelse(training_data$EsBarata == "Sí", "Barata", "Mediana")))
+  balanced_data <- ROSE(EsCara ~ OverallQual + GarageCars + GrLivArea + Category, data = training_data)$data
+
+  predictors <- balanced_data %>% select(-Category, -EsBarata, -EsMediana, -EsCara)
+  response <- balanced_data$EsCara
+
+  # Normalización (Estandarización Z-score)
+  preProc <- preProcess(predictors, method = c("center", "scale"))
+  predictors_scaled <- predict(preProc, predictors)
+
+  # Semilla para reproducibilidad
+  set.seed(randomSeed)
+
+  # Separar datos en entrenamiento (70%) y verificación (30%)
+  train_indices <- createDataPartition(response, p = 0.7, list = FALSE)
+
+  train_data <- predictors_scaled[train_indices, ]
+  test_data <- predictors_scaled[-train_indices, ]
+  train_response <- response[train_indices]
+  test_response <- response[-train_indices]
+
+  set.seed(randomSeed)  # Para reproducibilidad
+
+  control <- trainControl(method = "cv",    # cross-validation
+                           number = 10,      # número de folds
+                           classProbs = TRUE,  # para clasificación
+                           summaryFunction = twoClassSummary)  # para métricas como ROC
+
+  # Puedes cambiar a Accuracy, Sensitivity, etc.
+  # modeloBarata <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+  #                       data = train_data,
+  #                       method = "glm",
+  #                       family = "binomial",
+  #                       trControl = control,
+  #                       metric = "ROC")
+  # modeloMediana <- train(EsBarata ~ LotArea + OverallQual + YearBuilt + GarageCars + GrLivArea,
+  #                       data = train_data,
+  #                       method = "glm",
+  #                       family = "binomial",
+  #                       trControl = control,
+  #                       metric = "ROC")
+  modeloMejoradoCara <- train(EsCara ~ OverallQual + GarageCars + GrLivArea,
+                              data = train_data,
+                              method = "glm",
+                              family = "binomial",
+                              trControl = control,
+                              metric = "ROC") # Cambié la métrica a ROC para twoClassSummary
+
+  # print("Modelo de EsBarata")
+  # print(modeloBarata)
+
+  # print("Modelo de EsMediana")
+  # print(modeloMediana)
+
+  print("Modelo de EsCara")
+  print(modeloMejoradoCara)
+
+  predicciones_prob <- predict(modeloMejoradoCara, newdata = test_data, type = "prob")
+  predicciones <- ifelse(predicciones_prob$Sí > 0.5, "Sí", "No")
+
+  confusionMatrix(as.factor(predicciones), as.factor(test_response))
+})
+```
+
+En lo que respecta al tiempo y la memoria consumida se ve que para este modelo estos vaores son significativamente bajos. Se utilizo la libreria profviz para analizar estos datos y se obtuvo que el modelo consume un total de 17 MB que se asocia como una cantidad baja de memoria; por otro lado, se tiene un tiempo de ejecución total de 150 ms. La obtención de ambos valores bajos (memoria consumida y tiempo) indica una eficiencia algoritmica por parte del modelo mostrando una rápida y economica ejecución de este.
+
+Teniendo los datos anteriores seria bueno analizar los modelos implementados para determinar el mejor. Esto se puede conocer rápido al analizar las matrices de confusiones que se presentaron a lo largo del reporte. En este caso tenemos un modelo inicial y su versión mejorada, se tiene que el modelo mejorado presenta un mejor rendimiento lo que hace que sea este el mejor modelo.
+
+## Comparación de modelos
+
+Actualmente solo tenemos modelos que determinan si la una casa es cara o no, vamos a actualizarlo para deducir la variable "Categoría". A continuación se presenta la matriz de confusión obtenida por el modelo.
+
+```{r categoric model}
+library("nnet")
+library("dplyr")
+
+training_data <- read.csv("data/train.csv")
+training_data[is.na(training_data)] <- 0
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir los límites
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+
+# Crear la variable de clasificación
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                           ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+
+training_data$Category <- as.factor(training_data$Category)
+
+vars <- c("OverallQual", "GrLivArea", "YearBuilt", "TotalBsmtSF",
+          "GarageCars", "GarageArea", "FullBath", "TotRmsAbvGrd")
+
+
+set.seed(123)
+trainIndex <- createDataPartition(training_data$Category, p = 0.8, list = FALSE)
+train_set <- training_data[trainIndex, ]
+test_set <- training_data[-trainIndex, ]
+
+# Escalar variables numéricas
+preproc <- preProcess(train_set[, vars], method = c("center", "scale"))
+train_set[, vars] <- predict(preproc, train_set[, vars])
+test_set[, vars] <- predict(preproc, test_set[, vars])
+
+# Fórmula dinámica
+formula <- as.formula(paste("Category ~", paste(vars, collapse = " + ")))
+
+# Entrenar modelo multinomial
+modelo <- multinom(formula, data = train_set)
+
+# Predicciones
+predicciones <- predict(modelo, newdata = test_set)
+
+# Asegurar mismos niveles
+predicciones <- factor(predicciones, levels = levels(test_set$Category))
+
+confusionMatrix(predicciones, test_set$Category)
+```
+
+A continuación se presentaran las matrices de confusión de los modelos que se realizaron en reportes anteriores.
+
+-   KNN:
+
+```{r Clasification Model}
+
+# Calcular media y desviación estándar
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir umbrales
+lower_threshold <- mean_price - 1.5 * sd_price
+upper_threshold <- mean_price + 1.5 * sd_price
+
+# Asignar categorías correctamente
+training_data$SalePriceCategory <- case_when(
+  training_data$SalePrice < lower_threshold ~ "Barata",
+  training_data$SalePrice > upper_threshold ~ "Cara",
+  TRUE ~ "Mediana"
+)
+
+# Convertir en factor
+training_data$SalePriceCategory <- factor(training_data$SalePriceCategory)
+
+# Partición de datos con la columna correcta
+set.seed(123)
+train_indices <- createDataPartition(training_data$SalePriceCategory, p = 0.7, list = FALSE)
+
+train_data <- training_data[train_indices, ]
+test_data <- training_data[-train_indices, ]
+
+normalize <- function(x) { (x - min(x)) / (max(x) - min(x)) }
+# Normalizar solo variables numéricas
+train_data_numeric <- as.data.frame(lapply(train_data %>% select_if(is.numeric), normalize))
+test_data_numeric <- as.data.frame(lapply(test_data %>% select_if(is.numeric), normalize))
+
+# Definir variables predictoras y respuesta
+train_labels <- train_data$SalePriceCategory
+test_labels <- test_data$SalePriceCategory
+
+# Definir número óptimo de vecinos
+k <- round(sqrt(nrow(train_data)), 0)
+
+# Aplicar KNN
+knn_predictions <- knn(train = train_data_numeric,
+                       test = test_data_numeric,
+                       cl = train_labels,
+                       k = k)
+# Matriz de confusión
+conf_matrix <- confusionMatrix(knn_predictions, test_labels)
+print(conf_matrix)
+```
+
+-   Naive Bayes:
+
+```{r Naïve Bayes - Comparacion}
+library(e1071)  # For Naïve Bayes
+library(glmnet)
+
+# Define price categories (Low, Medium, High) using quantiles
+training_data$SalePriceCategory <- cut(training_data$SalePrice, 
+                            breaks = quantile(training_data$SalePrice, probs = c(0, 0.33, 0.66, 1), na.rm = TRUE), 
+                            labels = c("Barata", "Media", "Cara"), 
+                            include.lowest = TRUE)
+
+df <- training_data %>% select(-SalePrice, -Id)  # Remove ID and continuous SalePrice
+
+df <- df %>% mutate_if(is.character, as.factor)
+
+set.seed(42)
+train_index <- createDataPartition(training_data$SalePriceCategory, p = 0.7, list = FALSE)
+train_data <- df[train_index, ]
+test_data <- df[-train_index, ]
+
+nb_model <- naiveBayes(SalePriceCategory ~ ., data = train_data)
+
+predictions <- predict(nb_model, test_data)
+
+conf_matrix <- confusionMatrix(predictions, test_data$SalePriceCategory)
+print(conf_matrix)
+```
+
+-   Árbol de regresión:
+
+```{r}
+library(rpart)
+library(caret)
+
+set.seed(123)
+splitIndex <- createDataPartition(training_data$Category, p = 0.8, list = FALSE)
+train_data <- training_data[splitIndex, ]
+test_data <- training_data[-splitIndex, ]
+train_control <- trainControl(method = "cv", number = 10)
+
+modelo_tree_cv <- train(Category ~ GrLivArea + OverallQual + GarageCars + YearBuilt,
+                        data = train_data,
+                        method = "rpart",
+                        trControl = train_control,
+                        tuneLength = 10)
+
+predicciones <- predict(modelo_tree_cv, newdata = test_data)
+
+confusionMatrix(predicciones, test_data$Category)
+
+```
+
+### Análisis de modelos
+
+Al comparar las matrices de confusión para la predicción de la variable "Category", la Regresión Logística y el KNN exhiben las mayores exactitudes generales, ambas al rededor del 93-94%. Haciendo un analisis más profundo se ve la regresión logística presenta una mayor cooncordancia en sus datos presentados. El modelo de Naive Bayes presenta una excatitud significativamente menor (71.4%). El Árbol de Regresión se sitúa con una exactitud del 91.03%, quedando por debajo de los otros modelos mejores.
+
+En lo que respecta a los errores presentado por cada modelo podemos ver lo siguiente. La Regresión Logística tiende a confundir las casas "Medianas" con "Baratas" y "Caras" en mayor medida. EL modelo de KNN muestra un patrón de error mayor al no predecir correctamente ningún caso de la categoría "Barata" y confundir significativamente las casas "Medianas" con "Caras". El Naive Bayes presenta errores distribuidos entre las clases, con una notable confusión entre "Medianas" y "Baratas". El Árbol de Regresión también muestra una tendecia a confundir "Medianas" con "Baratas" y "Caras".
+
+En los tiempos de ejecución ningún modelo se tardo excesivamente mucho. El único modelo que tuvo una ejecución mas longeva fue el Árbol de regresión pero su tiempo agregado no se separa mucho del de los otros modelos.
+
+Teniendo todo el análisis anterior, tenemos que el modelo de regresión logística es el mejor modelo para predecir la variable "Category", ofreciendo un mejor equilibrio entre un alto rendimiento predictivo y una concordancia moderada.
+
+# Modelos de Regresión SVM
+
+```{r setup svm, include=FALSE}
+library(dplyr)
+library(caret)
+library(ggplot2)
+library(e1071)
+
+# Cargar datos
+training_data <- read.csv("data/train.csv")
+training_data <- training_data %>%
+  select(LotArea, OverallQual, YearBuilt, GarageCars, GrLivArea, SalePrice)
+
+# Reemplazar valores NA con 0
+training_data[is.na(training_data)] <- 0
+
+mean_price <- mean(training_data$SalePrice, na.rm = TRUE)
+sd_price <- sd(training_data$SalePrice, na.rm = TRUE)
+
+# Definir los límites
+lower_limit <- mean_price - (1 * sd_price)
+upper_limit <- mean_price + (2 * sd_price)
+
+training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
+                                ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+training_data <- training_data %>%
+  mutate(
+    EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
+    EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
+    EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
+  )
+training_data$Category <- as.factor(training_data$Category)
+
+predictors <- training_data %>% select(-Category)
+response <- training_data$Category
+
+# Normalización (Estandarización Z-score)
+preProc <- preProcess(predictors, method = c("center", "scale"))
+predictors_scaled <- predict(preProc, predictors)
+
+# Combinar las predictoras escaladas con la variable de respuesta
+scaled_data <- cbind(predictors_scaled, Category = response)
+scaled_data <- as.data.frame(scaled_data) # Convertir a data.frame
+
+# Semilla para reproducibilidad
+set.seed(123)
+
+# Separar datos en entrenamiento (70%) y verificación (30%)
+train_indices <- createDataPartition(scaled_data$Category, p = 0.7, list = FALSE)
+
+train_data <- scaled_data[train_indices, ]
+test_data_unscaled <- scaled_data[-train_indices, ] # Guardar la versión sin escalar para la respuesta
+
+# Escalar el conjunto de prueba usando el mismo preProc del entrenamiento
+test_predictors <- test_data_unscaled %>% select(-Category)
+test_data_scaled <- predict(preProc, test_predictors)
+test_data_scaled <- as.data.frame(test_data_scaled)
+test_data_scaled$Category <- test_data_unscaled$Category
+
+train_data <- train_data %>%
+  mutate(
+    Category = case_when(
+      EsCara == "Sí" ~ "Cara",
+      EsMediana == "Sí" ~ "Mediana",
+      EsBarata == "Sí" ~ "Barata"
+    )
+  )
+
+test_data_scaled <- test_data_scaled %>%
+  mutate(
+    Category = case_when(
+      EsCara == "Sí" ~ "Cara",
+      EsMediana == "Sí" ~ "Mediana",
+      EsBarata == "Sí" ~ "Barata"
+    )
+  )
+
+train_data$Category <- factor(train_data$Category, levels = c("Barata", "Mediana", "Cara"))
+test_data_scaled$Category <- factor(test_data_scaled$Category, levels = c("Barata", "Mediana", "Cara"))
+
+```
+
+Las transformaciones que se hicieron en el dataset involucraron la eliminación de los valores NA del dataset junto a la normalización de las variables numéricas. De igual forma para mejorar el rendimiento en el entrenamiento de los modelos que se harán a continuación, se mantuvo en el dataset unicamente la variable objetivo junto a las variables predictoras.
+
+A continuación se generan tres modelos de SVM: lineal, radial y polinomial. Cada modelo es testeado mediante diferentes parametros de forma automatica.
+
+```{r SVM Models}
+# ---------------------------
+# 1. Generar múltiples modelos SVM
+# ---------------------------
+
+# Definir el control de entrenamiento (cross-validation)
+train_control <- trainControl(method = "cv",
+                              number = 10,
+                              verboseIter = TRUE,
+                              classProbs = TRUE,
+                              summaryFunction = multiClassSummary)
+
+# Modelos SVM con diferentes kernels
+svm_linear <- train(Category ~ ., data = train_data,
+                    method = "svmLinear",
+                    tuneGrid = expand.grid(C = c(0.1, 1, 10)),
+                    trControl = train_control,
+                    metric = "Accuracy")
+
+svm_radial <- train(Category ~ ., data = train_data,
+                    method = "svmRadial",
+                    tuneGrid = expand.grid(C = c(0.1, 1, 10), sigma = c(0.01, 0.1, 1)),
+                    trControl = train_control,
+                    metric = "Accuracy")
+
+tune_grid_polynomial <- expand.grid(degree = c(2, 3), # Grados del polinomio a probar
+                                     scale = c(0.1, 1),   # Factor de escala a probar
+                                     C = c(0.1, 1, 10))  # Costos a probar
+
+svm_polynomial <- train(Category ~ ., data = training_data, # OJO: Usando training_data como en tu código original
+                         method = "svmPoly",
+                         tuneGrid = tune_grid_polynomial,
+                         trControl = train_control,
+                         metric = "Accuracy")
+
+
+# ---------------------------
+# 2. Resultados de los modelos
+# ---------------------------
+
+# Resumen de los modelos entrenados
+model_results <- list(
+  Linear = svm_linear,
+  Radial = svm_radial,
+  Polynomial = svm_polynomial
+)
+
+# Mostrar los mejores parámetros de cada modelo
+for (model_name in names(model_results)) {
+  best_tune <- model_results[[model_name]]$bestTune
+  print(paste("Mejores parámetros para", model_name, ":"))
+  print(best_tune)
+}
+
+# Resumen de resultados de los modelos
+results <- resamples(model_results)
+summary(results)
+
+```
+
+El resumen de los tres modelos SVM (Lineal, Radial y Polinomial) revela un rendimiento sorprendentemente perfecto en todas las métricas de clasificación evaluadas, incluyendo Accuracy, AUC, Kappa, y diversas medidas de precisión, recall y F1-score, con un valor de 1 en cada caso. El logLoss consistentemente bajo refuerza esta observación de predicciones altamente confiables.
+
+```{r confusion matrix}
+# ---------------------------
+# 3. Evaluación de desempeño
+# ---------------------------
+
+# Matriz de confusión para SVM Lineal
+predictions_linear <- predict(svm_linear, newdata = test_data_scaled)
+predictions_linear <- factor(predictions_linear, levels = levels(test_data_scaled$Category))
+conf_matrix_linear <- confusionMatrix(predictions_linear, test_data_scaled$Category)
+print("Matriz de Confusión para SVM Lineal:")
+print(conf_matrix_linear)
+
+# Matriz de confusión para SVM Radial
+predictions_radial <- predict(svm_radial, newdata = test_data_scaled)
+predictions_radial <- factor(predictions_radial, levels = levels(test_data_scaled$Category))
+conf_matrix_radial <- confusionMatrix(predictions_radial, test_data_scaled$Category)
+print("Matriz de Confusión para SVM Radial:")
+print(conf_matrix_radial)
+
+# Matriz de confusión para SVM Polinomial
+predictions_polynomial <- predict(svm_polynomial, newdata = test_data_scaled)
+predictions_polynomial <- factor(predictions_polynomial, levels = levels(test_data_scaled$Category))
+conf_matrix_polynomial <- confusionMatrix(predictions_polynomial, test_data_scaled$Category)
+print("Matriz de Confusión para SVM Polinomial:")
+print(conf_matrix_polynomial)
+
+```
+
+El SVM Lineal fue el mejor modelo, alcanzando una precisión del 95.87% y un fuerte acuerdo (Kappa de 0.8171). Clasificó perfectamente la clase "Mediana" y razonablemente bien "Barata", pero falló totalmente en detectar la clase "Cara". A pesar de esta debilidad, el modelo demuestra ser confiable en general y claramente superior frente a los otros.
+
+El SVM Radial, aunque logró un 87.39% de precisión, solo predijo la clase "Mediana" y falló completamente en "Barata" y "Cara", evidenciado por su Kappa de 0. El SVM Polinomial no logró clasificar ningún dato, resultando en métricas NaN. Por tanto, el SVM Lineal es el modelo recomendado, aunque sería conveniente trabajar en mejorar la detección de la clase "Cara".
+
+## Analisis de sobreajuste
+
+```{r overfitting analisis}
+# ---------------------------
+# Evaluación de desempeño (con métricas en entrenamiento y prueba)
+# ---------------------------
+
+# Función para evaluar el modelo y mostrar resultados
+evaluate_model <- function(model, train_data, test_data, model_name) {
+  cat(paste("Resultados para el modelo", model_name, ":\n"))
+
+  # Rendimiento en el conjunto de entrenamiento (usando los resultados de la validación cruzada)
+  cat("Rendimiento en el conjunto de entrenamiento (Validación Cruzada):\n")
+  print(model$results[which.max(model$results$Accuracy), ]) # Mostrar las métricas correspondientes a la mejor Accuracy
+
+  # Predicciones en el conjunto de prueba
+  predictions_test <- predict(model, newdata = test_data)
+  predictions_test <- factor(predictions_test, levels = levels(test_data$Category))
+
+  # Matriz de confusión en el conjunto de prueba
+  conf_matrix_test <- confusionMatrix(predictions_test, test_data$Category)
+  cat("\nMatriz de Confusión en el conjunto de prueba:\n")
+  print(conf_matrix_test)
+
+  # Métricas de rendimiento en el conjunto de prueba
+  cat("\nMétricas de rendimiento en el conjunto de prueba:\n")
+  print(conf_matrix_test$overall)
+  print(conf_matrix_test$byClass)
+}
+
+# Evaluar cada modelo
+evaluate_model(svm_linear, train_data, test_data_scaled, "SVM Lineal")
+evaluate_model(svm_radial, train_data, test_data_scaled, "SVM Radial")
+evaluate_model(svm_polynomial, train_data, training_data, "SVM Polinomial") # OJO: Usando training_data aquí como en la definición original del modelo
+```
+
+**SVM Lineal**: El modelo SVM Lineal muestra un rendimiento ligeramente inferior en el conjunto de prueba (aproximadamente 95.87% de precisión) en comparación con el rendimiento perfecto o casi perfecto observado durante la validación cruzada en el conjunto de entrenamiento. Esta pequeña disminución sugiere un ligero sobreajuste, donde el modelo aprendió algunos detalles específicos del conjunto de entrenamiento que no se generalizan perfectamente a los datos no vistos, especialmente para las categorías "Barata" y "Cara". Para mitigar esto, se podrían explorar valores más altos para el parámetro de regularización C en el tuneGrid para imponer una mayor penalización a los errores de clasificación en el entrenamiento, lo que podría llevar a un modelo más simple con mejor capacidad de generalización. También se podría considerar la inclusión de más datos de entrenamiento si están disponibles.
+
+**SVM Radial**: El modelo SVM Radial presenta una situación preocupante, con una precisión en el conjunto de prueba (87.39%) que coincide con la prevalencia de la clase mayoritaria ("Mediana") y un Kappa de 0. Esto indica un sobreajuste severo o una muy mala generalización. El modelo parece haber aprendido los datos de entrenamiento de tal manera que no puede discriminar entre las clases en el conjunto de prueba, prediciendo casi todo como la clase dominante. Para lidiar con esto, se deberían explorar diferentes rangos de valores para los hiperparámetros C y sigma en el tuneGrid, posiblemente incluyendo valores más pequeños de C para aumentar la regularización y diferentes escalas de sigma para controlar la influencia de cada punto de entrenamiento. Si el problema persiste, podría ser que el kernel radial no sea el más adecuado para este problema con las variables predictoras disponibles.
+
+**SVM Polinomial**: El modelo SVM Polinomial logra un rendimiento perfecto tanto en el conjunto de entrenamiento (según el análisis previo) como en el conjunto de prueba (100% de precisión y Kappa de 1). Esto indica una generalización ideal y un claro sobreajuste. Si bien este resultado es excelente, es demasiado ideal y perfecto, lo que hace que este modelo deba de volverse a hacer que no presente predicciones tan ajustadas.
+
+### Comparativa entre modelos
+
+Los modelos organizados por precisión es el siguiente:
+
+1.  SVM Polinomial (100%)
+2.  SVM Lineal (95%)
+3.  KNN (K=32) (94%)
+4.  Árbol de Decisión (91%)
+5.  Naive Bayes (78%)
+
+El algoritmo que más tiempo tomó entrenar en mi computadora fue el KNN, el que menos tomó fue el Naive Bayes y el Árbol de decisión. El árbol de decisión se ve como un buen middle ground entre performance y precisión final del modelo.
+
+Sin embargo, si lo que se busca es poder predictivo sin importar el costo, entonces la opción clara son los modelos SVM, no solo son los que mejor precisión han tenido de todos los modelos hasta ahora sino que además ni si quiera se demoraron más de 10s en entrenarse, lo que da un buen balance entre precisión y tiempo de entrenamiento.
+
+### Modelo que utiliza el precio directamente
+
+```{r}
+
+
+training_data <- read.csv("data/train.csv")
+training_data <- training_data %>%
+  select(LotArea, OverallQual, YearBuilt, GarageCars, GrLivArea, SalePrice)
+
+# Reemplazar valores NA con 0
+training_data[is.na(training_data)] <- 0
+
+# Definir los límites
+predictors <- training_data %>% select(-SalePrice)
+response <- training_data$SalePrice
+
+# Normalización (Estandarización Z-score)
+preProc <- preProcess(predictors, method = c("center", "scale"))
+predictors_scaled <- predict(preProc, predictors)
+
+# Combinar las predictoras escaladas con la variable de respuesta
+scaled_data <- cbind(predictors_scaled, SalePrice = response)
+scaled_data <- as.data.frame(scaled_data) # Convertir a data.frame
+
+# Semilla para reproducibilidad
+set.seed(123)
+
+# Separar datos en entrenamiento (70%) y verificación (30%)
+train_indices <- createDataPartition(scaled_data$SalePrice, p = 0.7, list = FALSE)
+
+train_data <- scaled_data[train_indices, ]
+test_data_unscaled <- scaled_data[-train_indices, ] # Guardar la versión sin escalar para la respuesta
+
+# Escalar el conjunto de prueba usando el mismo preProc del entrenamiento
+test_predictors <- test_data_unscaled %>% select(-SalePrice)
+test_data_scaled <- predict(preProc, test_predictors)
+test_data_scaled <- as.data.frame(test_data_scaled)
+test_data_scaled$SalePrice <- test_data_unscaled$SalePrice
+
+train_control <- trainControl(method="cv",
+                              number = 10,
+                              verboseIter = TRUE)
+
+model <- train(SalePrice ~ .,
+                data = train_data,
+                method = "svmPoly",
+               tuneLength = 3,
+                trControl = train_control)            
+
+
+cat(paste("Resultados para el modelo", "de regresion de Sale Price", ":\n"))
+
+  # Rendimiento en el conjunto de entrenamiento (usando los resultados de la validación cruzada)
+  cat("Rendimiento en el conjunto de entrenamiento (Validación Cruzada):\n")
+  print(model$results[which.max(model$results$Rsquared), ])
+
+  # Predicciones en el conjunto de prueba
+  predictions_test <- predict(model, newdata = test_data_unscaled)
+  # predictions_test <- factor(predictions_test, levels = levels(training_data$SalePrice))
+
+  results <- postResample(pred = predictions_test, obs = test_data_unscaled$SalePrice)
+  cat("\nRendimiento en el conjunto de prueba:\n")
+  print(results)
+```
+
+El modelo de regresión de arriba es un SVM polinomial entrenado con validación cruzada, el mejor R cuadrado encontrado es de 0.84 durante el entrenamiento, teniendo por hiperparámetros: \* degree: 3 \* scale: 0.1 \* c: 0.25
+
+Con la data de validación se obtuvieron resultados muy lamentables, llegando a 0.6023 el R cuadrado, lo cual es apenas un poco mejor a "tirar una moneda", el RMSE es de 54 mil dólares, lo que significa que el precio generalmente tiene un rango de error de más/menos 54 mil dólares.
+
+**A qué creemos que se debe este cambio con respecto al clasificador SVM polinomial anterior que obtuvo básicamente una nota perfecta?**
+
+Creemos que esta diferencia se debe principalmente a la mayor especificidad del "SalePrice" con respecto a la categoría, lo que hace que el modelo simplemente sea uno mucho más complicado y con mayor probabilidad de fallo, puesto que el precio lo debe adivinar casi que exacto para tener una mejor nota, mientras que el modelo clasificador solamente tiene 3 opciones y no importa qué tan mal adivine el precio mientras no se salga de sus clasificaciones.
+
+## Conclusiones y Recomendaciones
+
+En conclusión, el modelo SVM Polinomial fue el mejor tanto en accuracy, y se tarda un tiempo medio en entrenar. Hasta ahora ha probado ser el mejor predictor para clasificar una casa en alguna de las 3 categorías.
+
+Nuestra principal recomendación es utilizar varios modelos, por ejemplo, se podría usar un modelo específicamente diseñado para clasificar casas, el SVM polinomial clasificador desarrollado con anterioridad podría ser un buen ejemplo. Luego se tendría 3 modelos especializados, cada uno para cada categoría de casa. Bajo esta arquitectura cada modelo se puede especializar en su área en específico y no tiene toda la interferencia de los demás datos, lo que podría llevar a muchos mejores resultados que los acá mostrados.
+
+# Modelos de Redes Neuronales
+
+```{r setup redes neuronales, include=FALSE}
 library(prettydoc)
 library(dplyr)
 library(caret)
@@ -93,8 +2137,7 @@ test_set  <- normalized_data$test
 
 ```
 
-
-## Modelos de Red neuronal
+## Modelos Básicos
 
 ```{r model 1}
 
@@ -249,20 +2292,20 @@ summary(train_set)
 
 ```
 
-En la gráfica podemos ver que los mejores parámetros encontrados fue para un size de 5 junto a un decay de 0.1, es con estos parametros que se genera la matriz de confusión para obtener el accuracy del modelo. 
+En la gráfica podemos ver que los mejores parámetros encontrados fue para un size de 5 junto a un decay de 0.1, es con estos parametros que se genera la matriz de confusión para obtener el accuracy del modelo.
 
 El modelo ajustado muestra una ligera mejora en la precisión general (90.21%) respecto al anterior, especialmente en la clase “Medianas”, que alcanza una alta sensibilidad (96.6%) y precisión (92.4%). Sin embargo, las clases minoritarias como “Baratas” y “Caras” continúan presentando bajos niveles de sensibilidad (55.0% y 36.8%, respectivamente), lo que indica que el modelo tiene dificultades para identificarlas correctamente debido al desbalance en los datos. Aunque el ajuste de parámetros mejoró el rendimiento global y ciertos aspectos específicos, el modelo sigue sesgado hacia la clase dominante. En caso de que se quiera mejorar el modelo, lo que se podria hacer es rebalancear el dataset para tener una mejor representación de las clases minoritarias y asi mejorar su predicción en el modelo.
 
 Ahora utilizaremos la variable SalePrice directamente.
 
 ## Modelos Neuronales sobre SalePrice
+
 ```{r Keras Setup}
 #install.packages("keras")
 #library(keras)
 #reticulate::install_python(version = "3.10:latest")
 #install_keras()
 ```
-
 
 ```{r Modelos Neuronales sobre SalePrice}
 library(keras)
@@ -343,6 +2386,7 @@ De ambos modelos, el que mejor se comportó fue el segundo, ya que obtuvo un MAE
 ### Mejora del modelo
 
 Para mejorar el modelo podríamos intentar aumentar la cantidad de neuronas que tiene:
+
 ```{r Aumentando la cantidad de neuronas por capa}
 df <- train_set  # replace with your actual variable
 df <- df %>% select(-Category)  # remove categorical variable (or encode it separately)
@@ -385,6 +2429,7 @@ plot(history2, main = "Training History - Model 2 (tanh)")
 ```
 
 Si duplicamos la cantidad de neuronas dentro de cada capa intermedia realmente no se puede apreciar una mejora en el modelo, de hecho técnicamente empeora puesto que ahora las curvas tienden a separarse entre sí. Talvez le podemos dar más tiempo de entrenamiento...
+
 ```{r More training time}
 df <- train_set  # replace with your actual variable
 df <- df %>% select(-Category)  # remove categorical variable (or encode it separately)
@@ -478,3 +2523,22 @@ El mejor modelo para predecir categorías como se dijo en entregas anteriores fu
 En cuanto a predicción de la variable objetivo de SalePrice creemos que el modelo de redes neuronales fue el que mejor resultados brindó puesto que el mejor de los modelos expuestos con anterioridad llegó a solamente 0.27% de la desviación estándar de error mientras que el de SVM fue mucho más alto.
 
 # Conclusiones
+
+En conclusión una tabla comparativa de los modelos predictivos categóricos la podemos ver a continuación:
+
+| Modelo | Accuracy | Tiempo de Entrenamiento | Extra |
+|------------------|------------------|------------------|------------------|
+| Bayes | 78% | Media | Fácilmente el peor de todos |
+| Árboles de Decisión y Random Forest | 91% | Rápido | Decentemente preciso para su velocidad de entrenamiento. |
+| KNN | 94% | Media | Muy preciso, tiempo moderado de entrenamiento. |
+| Regresión Logística | 94% | Media | Igual al KNN aunque un poco más balanceado, no confunde las clases con menor representación tan seguido |
+| Modelo SVM | 100% | Media-Lenta | El mejor en términos de precisión de todos los modelos |
+
+Par determinar la categoría de precio a la que debe pertenecer una casa, recomendamos con una gran confianza le modelo SVM, puesto que ofrece una precisión casi perfect y un tiempo de entrenamiento decente.
+
+Para los modelos predictivos de la variable SalePrice tenemos:
+
+| Modelo | MAE |
+|------------------------------------|------------------------------------|
+| SVM | 54 mil dólares |
+| Redes Neuronales | 0.27 desviaciones estándar o `r 0.27 * sd(y_test)` dólares |

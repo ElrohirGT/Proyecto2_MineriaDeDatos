@@ -33,6 +33,12 @@ upper_limit <- mean_price + (2 * sd_price)
 # Crear la variable de clasificación
 training_data$Category <- ifelse(training_data$SalePrice < lower_limit, "Baratas",
                                 ifelse(training_data$SalePrice > upper_limit, "Caras", "Medianas"))
+training_data <- training_data %>%
+  mutate(
+    EsBarata = ifelse(SalePrice < lower_limit, "Sí", "No"),
+    EsCara = ifelse(SalePrice > upper_limit, "Sí", "No"),
+    EsMediana = ifelse(SalePrice >= lower_limit & SalePrice <= upper_limit, "Sí", "No")
+  )
 
 training_data$Category <- as.factor(training_data$Category)
 
@@ -522,6 +528,7 @@ train_indices <- createDataPartition(training_data$SalePriceCategory, p = 0.7, l
 
 train_data <- training_data[train_indices, ]
 test_data <- training_data[-train_indices, ]
+normalize <- function(x) { (x - min(x)) / (max(x) - min(x)) }
 
 # Normalizar solo variables numéricas
 train_data_numeric <- as.data.frame(lapply(train_data %>% select_if(is.numeric), normalize))
